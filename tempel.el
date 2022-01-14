@@ -128,10 +128,11 @@ may be named with `tempel--name' or carry an evaluatable Lisp expression
     (define-key map [remap end-of-buffer] #'tempel-end)
     (define-key map [remap forward-paragraph] #'tempel-next)
     (define-key map [remap backward-paragraph] #'tempel-previous)
+    (define-key map [remap kill-sentence] #'tempel-kill)
     (define-key map [remap keyboard-quit] #'tempel-abort)
     (define-key map [remap keyboard-escape-quit] #'tempel-abort)
     map)
-  "Keymap to navigate across template markers.")
+  "Keymap to navigate across template fields.")
 
 (defun tempel--print-element (elt)
   "Return string representation of template ELT."
@@ -427,6 +428,19 @@ PROMPT is the optional prompt/default value."
   (when-let (pos (tempel--end))
     (if (= pos (point)) (tempel-done) (goto-char pos))))
 
+(defun tempel--field-at-point ()
+  "Return the field overlay at point."
+  (cl-loop for ov in (overlays-in (max (point-min) (1- (point)))
+                                  (min (point-max) (1+ (point))))
+           thereis (and (overlay-get ov 'tempel--state) ov)))
+
+(defun tempel-kill ()
+  "Kill the field contents."
+  (interactive)
+  (if-let (ov (tempel--field-at-point))
+      (kill-region (overlay-start ov) (overlay-end ov))
+    (kill-sentence nil)))
+
 (defun tempel-next (arg)
   "Move ARG fields forward and quit at the end."
   (interactive "p")
@@ -603,6 +617,15 @@ If called interactively, select a template with `completing-read'."
   "Enable abbrev mode locally."
   (unless (or noninteractive (eq (aref (buffer-name) 0) ?\s))
     (tempel-abbrev-mode 1)))
+
+;; Emacs 28: Do not show Tempel commands in M-X
+(dolist (sym (list #'tempel-next #'tempel-previous #'tempel-beginning
+                   #'tempel-end #'tempel-kill #'tempel-done #'tempel-abort))
+  (put sym 'completion-predicate #'tempel--command-p))
+
+(defun tempel--command-p (_sym buffer)
+  "Return non-nil if Tempel is active in BUFFER."
+  (buffer-local-value 'tempel--active buffer))
 
 (provide 'tempel)
 ;;; tempel.el ends here
