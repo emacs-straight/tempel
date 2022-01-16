@@ -41,10 +41,11 @@ Then the Tempel templates will be available via ~expand-abbrev~ which is usually
 bound to ~C-x '~.
 
 Note that this package is not a competitor to the mature and widely used
-YASnippet library. Try Tempel only if you like small and simple packages. With
-Tempel you write your templates in Lisp syntax, which from my perspective fits
-well to the hackable nature of Emacs. Tempel took inspiration from the
-[[https://nschum.de/src/emacs/tempo-snippets/][Tempo-Snippets]] package by Nikolaj Schumacher ([[https://github.com/nschum/tempo-snippets.el][GitHub link]]).
+YASnippet library, which comes with many readily available snippet collections.
+Try Tempel only if you like small and simple packages. With Tempel you write
+your templates in Lisp syntax, which from my perspective fits well to the
+hackable nature of Emacs. Tempel took inspiration from the [[https://nschum.de/src/emacs/tempo-snippets/][Tempo-Snippets]]
+package by Nikolaj Schumacher ([[https://github.com/nschum/tempo-snippets.el][GitHub link]]).
 
 #+html: <table><tr><td><img src="https://github.com/minad/tempel/blob/screenshots/rst.gif?raw=true" align="left"></td><td><img src="https://github.com/minad/tempel/blob/screenshots/latex.gif?raw=true" align="left"></td><td><img src="https://github.com/minad/tempel/blob/screenshots/elisp.gif?raw=true" align="left"></td></tr></table>
 
@@ -226,6 +227,22 @@ Internally ~tempel-key~ uses ~tempel-insert~ to trigger the insertion. Depending
 the style of your user configuration you may want to write your own helper
 macros, which allow you to conveniently bind templates via [[https://github.com/jwiegley/use-package][use-package]], [[https://github.com/noctuid/general][general]]
 or similar keybinding packages.
+
+* Alternatives
+
+There are plenty of alternative packages which provide abbreviation or snippet expansion.
+
+- abbrev.el: Abbreviation expansion, builtin
+- skeleton.el: Lisp syntax for templates, builtin
+- tempo.el: Lisp syntax for templates, builtin
+- [[https://github.com/cdominik/cdlatex][cdlatex.el]]: Fast LaTeX insertion
+- [[https://github.com/jiahaowork/muban.el][muban.el]]: Lightweight template expansion
+- [[https://github.com/joaotavora/yasnippet][yasnippet.el]]: The most popular Emacs template system
+- [[https://github.com/pkazmier/snippet.el][snippet.el]]: Original snippet mode
+- [[https://github.com/ymarco/auto-activating-snippets][aas.el]]: Auto activating snippets
+- [[https://github.com/tecosaur/LaTeX-auto-activating-snippets][laas.el]]: Latex auto activating snippets
+- [[https://github.com/xFA25E/skempo][skempo.el]]: Unifies the Skeleton and Tempo configuration
+- [[https://nschum.de/src/emacs/tempo-snippets/][tempo-snippets.el]]: snippet.el-like interface for Tempo
 
 * Contributions
 
