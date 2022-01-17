@@ -92,10 +92,10 @@ In the following we show an example configuration, which relies on on
 * Template file format
 
 The templates are defined in a Lisp file which is stored by default in the
-~user-emacs-directory~ (=~/.config/emacs/templates=). The templates are written as
-lists in the concise form of the Emacs Tempo syntax. The first element of the
-list is the name of the template. Behind the name, the Tempo syntax elements
-follow.
+~user-emacs-directory~ (=~/.config/emacs/templates=). The templates are grouped by
+major mode with an optional ~:condition~. Each template is a list in the concise
+form of the Emacs Tempo syntax. The first element of each list is the name of
+the template. Behind the name, the Tempo syntax elements follow.
 
 #+begin_src emacs-lisp
   ;; -*- mode: lisp -*-
@@ -140,6 +140,8 @@ follow.
   (asciibox "+-" (make-string (length str) ?-) "-+" n
             "| " (s str)                       " |" n
             "+-" (make-string (length str) ?-) "-+" n)
+  (rot13 (p "plain text" text) n "----" n (rot13 text))
+  (calc (p "taylor(sin(x),x=0,3)" formula) n "----" n (format "%s" (calc-eval formula)))
 
   rst-mode
 
@@ -148,6 +150,11 @@ follow.
   java-mode
 
   (class "public class " (p (file-name-base (or (buffer-file-name) (buffer-name)))) " {" n> r> n "}")
+
+  c-mode :condition (re-search-backward "^\\w*$" (line-beginning-position) 'noerror)
+
+  (inc "#include <" (p (concat (file-name-base (or (buffer-file-name) (buffer-name))) ".h")) ">")
+  (incc "#include \"" (p (concat (file-name-base (or (buffer-file-name) (buffer-name))) ".h")) "\"")
 
   org-mode
 
