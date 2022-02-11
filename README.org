@@ -137,6 +137,16 @@ the template. Behind the name, the Tempo syntax elements follow.
   (rec "(letrec (" p ")" n> r> ")")
   (command "(defun " p " (" p ")\n  \"" p "\"" n> "(interactive)" n> r> ")")
 
+  eshell-mode
+
+  (for "for " (p "i") " in " p " { " p " }")
+  (while "while { " p " } { " p " }")
+  (until "until { " p " } { " p " }")
+  (if "if { " p " } { " p " }")
+  (if-else "if { " p " } { " p " } { " p " }")
+  (unless "unless { " p " } { " p " }")
+  (unless-else "unless { " p " } { " p " } { " p " }")
+
   text-mode
 
   (cut "--8<---------------cut here---------------start------------->8---" n r n
@@ -223,9 +233,9 @@ want to add global or local template variables to your user configuration:
   (add-to-list 'tempel-template-sources 'my-local-templates)
 #+end_src
 
-* Binding important to a key
+* Binding important templates to a key
 
-Important kemplates can be bound to a key with the small utility macro
+Important templates can be bound to a key with the small utility macro
 ~tempel-key~ which accepts three arguments, a key, a template or name and
 optionally a map.
 
