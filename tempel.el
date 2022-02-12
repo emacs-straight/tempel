@@ -115,7 +115,7 @@ must return a list of templates which apply to the buffer or context."
   "List of active templates.
 Each template state is a pair, where the car is a list of overlays and
 the cdr is an alist of variable bindings. The template state is attached
-to each overlay as the property `tempel--state'. Furthermore overlays
+to each overlay as the property `tempel--field'. Furthermore overlays
 may be named with `tempel--name' or carry an evaluatable Lisp expression
 `tempel--form'.")
 
@@ -177,6 +177,13 @@ REGION are the current region bouns"
       (tempel--delete-word name)
       (tempel--insert template region))))
 
+(defun tempel--range-modified (ov &rest _)
+  "Range overlay OV modified."
+  (when (= (overlay-start ov) (overlay-end ov))
+    (let ((st (overlay-get ov 'tempel--range)))
+      (setq tempel--active (cons st (delq st tempel--active)))
+      (tempel--disable))))
+
 (defun tempel--field-modified (ov after beg end &optional _len)
   "Update field overlay OV.
 AFTER is non-nil after the modification.
@@ -188,7 +195,7 @@ BEG and END are the boundaries of the modification."
     (delete-region (overlay-start ov) (overlay-end ov)))
    ;; Update field after modification
    (after
-    (let ((st (overlay-get ov 'tempel--state)))
+    (let ((st (overlay-get ov 'tempel--field)))
       (unless undo-in-progress
         (move-overlay ov (overlay-start ov) (max end (overlay-end ov))))
       (when-let (name (overlay-get ov 'tempel--name))
@@ -201,14 +208,18 @@ BEG and END are the boundaries of the modification."
 
 (defun tempel--synchronize-fields (st current)
   "Synchronize fields of ST, except CURRENT overlay."
-  (dolist (ov (car st))
-    (unless (eq ov current)
-      (save-excursion
-        (goto-char (overlay-start ov))
-        (let (x)
-          (setq x (or (and (setq x (overlay-get ov 'tempel--form)) (eval x (cdr st)))
-                      (and (setq x (overlay-get ov 'tempel--name)) (alist-get x (cdr st)))))
-          (when x (tempel--replace (overlay-start ov) (overlay-end ov) ov x)))))))
+  (let ((range (caar st)))
+    (dolist (ov (cdar st))
+      (unless (eq ov current)
+        (save-excursion
+          (goto-char (overlay-start ov))
+          (let (x)
+            (setq x (or (and (setq x (overlay-get ov 'tempel--form)) (eval x (cdr st)))
+                        (and (setq x (overlay-get ov 'tempel--name)) (alist-get x (cdr st)))))
+            (when x (tempel--replace (overlay-start ov) (overlay-end ov) ov x)))))
+      ;; Move range overlay
+      (move-overlay range (overlay-start range)
+                    (max (overlay-end range) (overlay-end ov))))))
 
 (defun tempel--replace (beg end ov str)
   "Replace region beween BEG and END with STR.
@@ -252,7 +263,7 @@ INIT is the optional initial input."
       (insert init)
       (move-overlay ov (overlay-start ov) (point)))
     (tempel--update-mark ov)
-    (overlay-put ov 'tempel--state st)
+    (overlay-put ov 'tempel--field st)
     (overlay-put ov 'modification-hooks (list #'tempel--field-modified))
     (overlay-put ov 'insert-in-front-hooks (list #'tempel--field-modified))
     (overlay-put ov 'insert-behind-hooks (list #'tempel--field-modified))
@@ -318,35 +329,43 @@ PROMPT is the optional prompt/default value."
 
 (defun tempel--insert (template region)
   "Insert TEMPLATE given the current REGION."
-  ;; TODO do we want to have the ability to reactivate snippets?
-  (unless (eq buffer-undo-list t)
-    (push (list 'apply #'tempel--disable) buffer-undo-list))
-  (setf (alist-get 'tempel--active minor-mode-overriding-map-alist) tempel-map)
-  (save-excursion
-    ;; Split existing overlays, do not expand within existing field.
-    ;; TODO This will be causing issues. Think more about nested expansion.
-    (dolist (st tempel--active)
-      (dolist (ov (car st))
-        (when (and (<= (overlay-start ov) (point)) (>= (overlay-end ov) (point)))
-          (setf (overlay-end ov) (point)))))
-    ;; Activate template
-    (let ((st (cons nil nil))
-          (inhibit-modification-hooks t))
-      (push (make-overlay (point) (point)) (car st))
-      (overlay-put (caar st) 'face 'cursor) ;; TODO debug
-      (dolist (elt template) (tempel--element st region elt))
-      (push (make-overlay (point) (point) nil t t) (car st))
-      (overlay-put (caar st) 'face 'cursor) ;; TODO debug
-      (push st tempel--active)))
-  (if (cddaar tempel--active)
-      (unless (cl-loop for ov in (caar tempel--active)
-                       thereis (and (overlay-get ov 'tempel--state)
-                                    (eq (point) (overlay-start ov))))
-        ;; Jump to first field
-        (tempel-next 1))
-    ;; Disable right away
-    (goto-char (overlay-start (caaar tempel--active)))
-    (tempel--disable)))
+  (let ((plist template))
+    (while (and plist (not (keywordp (car plist))))
+      (pop plist))
+    (eval (plist-get plist :pre) 'lexical)
+    ;; TODO do we want to have the ability to reactivate snippets?
+    (unless (eq buffer-undo-list t)
+      (push (list 'apply #'tempel--disable) buffer-undo-list))
+    (setf (alist-get 'tempel--active minor-mode-overriding-map-alist) tempel-map)
+    (save-excursion
+      ;; Split existing overlays, do not expand within existing field.
+      ;; TODO This will be causing issues. Think more about nested expansion.
+      (dolist (st tempel--active)
+        (dolist (ov (cdar st))
+          (when (and (<= (overlay-start ov) (point)) (>= (overlay-end ov) (point)))
+            (setf (overlay-end ov) (point)))))
+      ;; Activate template
+      (let ((st (cons nil nil))
+            (inhibit-modification-hooks t)
+            (range (point)))
+        (while (and template (not (keywordp (car template))))
+          (tempel--element st region (pop template)))
+        (setq range (make-overlay range (point) nil t))
+        (push range (car st))
+        (overlay-put range 'modification-hooks (list #'tempel--range-modified))
+        (overlay-put range 'tempel--range st)
+        ;;(overlay-put range 'face 'region) ;; TODO debug
+        (push st tempel--active)))
+    (cond
+     ((cl-loop for ov in (caar tempel--active)
+               never (overlay-get ov 'tempel--field))
+      (goto-char (overlay-end (caaar tempel--active)))
+      (tempel--disable)) ;; Disable right away
+     ((cl-loop for ov in (caar tempel--active)
+               never (and (overlay-get ov 'tempel--field)
+                          (eq (point) (overlay-start ov))))
+      (tempel-next 1))) ;; Jump to first field
+    (eval (plist-get plist :post) 'lexical)))
 
 (defun tempel--save ()
   "Save template file buffer."
@@ -446,7 +465,7 @@ PROMPT is the optional prompt/default value."
   "Return the field overlay at point."
   (cl-loop for ov in (overlays-in (max (point-min) (1- (point)))
                                   (min (point-max) (1+ (point))))
-           thereis (and (overlay-get ov 'tempel--state) ov)))
+           thereis (and (overlay-get ov 'tempel--field) ov)))
 
 (defun tempel-kill ()
   "Kill the field contents."
@@ -471,14 +490,12 @@ PROMPT is the optional prompt/default value."
 (defun tempel--beginning ()
   "Return beginning of template markers."
   (and tempel--active
-       (cl-loop for st in tempel--active minimize
-                (cl-loop for ov in (car st) minimize (overlay-start ov)))))
+       (cl-loop for st in tempel--active minimize (overlay-start (caar st)))))
 
 (defun tempel--end ()
   "Return end of template markers."
   (and tempel--active
-       (cl-loop for st in tempel--active maximize
-                (cl-loop for ov in (car st) maximize (overlay-end ov)))))
+       (cl-loop for st in tempel--active maximize (overlay-end (caar st)))))
 
 (defun tempel-abort ()
   "Abort template insertion."
