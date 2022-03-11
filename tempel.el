@@ -28,7 +28,7 @@
 
 ;; Tempel implements a simple template/snippet system. The template
 ;; format is compatible with the template format of the Emacs Tempo
-;; library. Your templates are stored in the `tempel-file' (by default
+;; library. Your templates are stored in the `tempel-path' (by default
 ;; the file "templates" in the `user-emacs-directory'). Bind the
 ;; commands `tempel-complete', `tempel-expand' or `tempel-insert' to
 ;; some keys in your user configuration. You can jump with the keys M-{
@@ -48,9 +48,9 @@
   :group 'editing
   :prefix "tempel-")
 
-(defcustom tempel-file (expand-file-name "templates" user-emacs-directory)
-  "Path to the template file."
-  :type 'string)
+(defcustom tempel-path (expand-file-name "templates" user-emacs-directory)
+  "A file or a list of files and/or directories, containing templates."
+  :type '(choice string (string list)))
 
 (defcustom tempel-mark
   #(" " 0 1 (display (space :width (1)) face cursor))
@@ -72,11 +72,16 @@ nil or a new template element, which is subsequently evaluated."
   :type 'hook)
 
 (defcustom tempel-template-sources
-  (list #'tempel-file-templates)
+  (list #'tempel-path-templates)
   "List of template sources.
 A source can either be a function or a variable symbol. The functions
 must return a list of templates which apply to the buffer or context."
   :type 'hook)
+
+(defcustom tempel-auto-reload t
+  "Reload templates when files specified by `tempel-path' change.
+If a file is modified, added or removed, reload the templates."
+  :type 'boolean)
 
 (defface tempel-field
   '((((class color) (min-colors 88) (background light))
@@ -102,11 +107,11 @@ must return a list of templates which apply to the buffer or context."
     (t :inherit highlight :slant italic))
   "Face used for default values.")
 
-(defvar tempel--file-templates nil
-  "Templates loaded from the `tempel-file'.")
+(defvar tempel--path-templates nil
+  "Templates loaded from the `tempel-path'.")
 
-(defvar tempel--file-modified nil
-  "Modification time of `tempel-file' at the last load.")
+(defvar tempel--path-timestamps nil
+  "Alist of files and modification times on the `tempel-path'.")
 
 (defvar tempel--history nil
   "Completion history used by `tempel-insert'.")
@@ -148,6 +153,16 @@ may be named with `tempel--name' or carry an evaluatable Lisp expression
      (and (not (car noinsert)) (symbol-name name)))
     ((or 'n 'n> '> '& '% 'o) " ")
     (_ "_")))
+
+(defun tempel--expand-path ()
+  "Return the list of files specified by `tempel-path'."
+  (let (files)
+    (dolist (path (if (listp tempel-path) tempel-path (list tempel-path)))
+      (when (file-exists-p path)
+        (if (file-directory-p path)
+            (setq files (nconc files (directory-files-recursively path "")))
+          (push path files))))
+    files))
 
 (defun tempel--annotate (templates width ellipsis sep name)
   "Annotate template NAME given the list of TEMPLATES.
@@ -373,11 +388,22 @@ PROMPT is the optional prompt/default value."
     (eval (plist-get plist :post) 'lexical)))
 
 (defun tempel--save ()
-  "Save template file buffer."
-  (when-let (buf (get-file-buffer tempel-file))
-    (with-current-buffer buf
-      (when (and (buffer-modified-p) (y-or-n-p (format "Save file %s? " tempel-file)))
-        (save-buffer buf)))))
+  "Prompt to save modified files in `tempel-path'."
+  (cl-loop
+   with all = nil
+   for (file . _ts) in tempel--path-timestamps do
+   (when-let (buf (get-file-buffer file))
+     (with-current-buffer buf
+       (when (and (buffer-modified-p)
+                  (pcase (or all (read-answer
+                                  (format "Save file %s? " file)
+                                  '(("yes" ?y "save the file")
+                                    ("no"  ?n "skip the file")
+                                    ("all" ?! "save all modified files"))))
+                    ("yes" t)
+                    ("no" nil)
+                    ("all" (setq all "all"))))
+         (save-buffer buf))))))
 
 (defun tempel--file-read (file)
   "Load templates from FILE."
@@ -400,16 +426,24 @@ PROMPT is the optional prompt/default value."
           (push `(,(nreverse modes) ,(nreverse plist) . ,(nreverse templates)) result)))
       result)))
 
-(defun tempel-file-templates ()
-  "Load the templates defined in `tempel-file'."
-  (let ((mod (time-convert (file-attribute-modification-time
-                            (file-attributes tempel-file))
-                           'integer)))
-    (unless (equal tempel--file-modified mod)
-      (setq tempel--file-templates (tempel--file-read tempel-file)
-            tempel--file-modified mod)))
+(defun tempel-path-templates ()
+  "Return templates defined in `tempel-path'.
+Additionally, save any files in `tempel-template-sources' that have been
+modified since the last time this function was called.
+This is meant to be a source in `tempel-template-sources'."
+  (when tempel-auto-reload
+    (let* ((files (tempel--expand-path))
+           (timestamps (cl-loop
+                        for f in files collect
+                        (cons f (time-convert
+                                 (file-attribute-modification-time
+                                  (file-attributes f))
+                                 'integer)))))
+      (unless (equal tempel--path-timestamps timestamps)
+        (setq tempel--path-timestamps timestamps
+              tempel--path-templates (mapcan #'tempel--file-read files)))))
   (cl-loop
-   for (modes plist . templates) in tempel--file-templates
+   for (modes plist . templates) in tempel--path-templates
    if (and
        (cl-loop for m in modes
                 thereis (or (derived-mode-p m) (eq m #'fundamental-mode)))
