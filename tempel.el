@@ -627,12 +627,18 @@ If INTERACTIVE is nil the function acts like a capf."
     (when-let (templates (tempel--templates))
       (let* ((region (tempel--region))
              (bounds (or (and (not region) (tempel--prefix-bounds))
-                         (cons (point) (point)))))
+                         (and (not tempel-trigger-prefix) (cons (point) (point))))))
         (list (car bounds) (cdr bounds)
               (tempel--completion-table templates)
               :exclusive 'no
               :company-kind (lambda (_) 'snippet)
               :exit-function (apply-partially #'tempel--exit templates region)
+              :company-prefix-length
+              (and tempel-trigger-prefix
+                   (save-excursion
+                     (goto-char (car bounds))
+                     (search-forward tempel-trigger-prefix (cdr bounds) 'noerror) t)
+                   t)
               :annotation-function
               (and tempel-complete-annotation
                    (apply-partially #'tempel--annotate
