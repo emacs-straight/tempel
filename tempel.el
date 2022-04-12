@@ -452,15 +452,21 @@ This is meant to be a source in `tempel-template-sources'."
               tempel--path-templates (mapcan #'tempel--file-read files)))))
   (cl-loop
    for (modes plist . templates) in tempel--path-templates
-   if (and
-       (cl-loop for m in modes
-                thereis (or (derived-mode-p m) (eq m #'fundamental-mode)))
-       (or (not (plist-member plist :condition))
-           (save-excursion
-             (save-restriction
-               (save-match-data
-                 (eval (plist-get plist :condition) 'lexical))))))
+   if (tempel--condition-p modes plist)
    append templates))
+
+(defun tempel--condition-p (modes plist)
+  "Return non-nil if one of MODES matches and the PLIST condition is satisfied."
+  (and
+   (cl-loop
+    for m in modes thereis
+    (or (eq m #'fundamental-mode)
+        (derived-mode-p m)))
+   (or (not (plist-member plist :condition))
+       (save-excursion
+         (save-restriction
+           (save-match-data
+             (eval (plist-get plist :condition) 'lexical)))))))
 
 (defun tempel--templates ()
   "Return templates for current mode."
