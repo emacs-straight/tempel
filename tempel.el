@@ -49,7 +49,8 @@
   :prefix "tempel-")
 
 (defcustom tempel-path (expand-file-name "templates" user-emacs-directory)
-  "A file or a list of files and/or directories, containing templates."
+  "A file or a list of template files.
+The file paths can contain wildcards."
   :type '(choice string (repeat string)))
 
 (defcustom tempel-trigger-prefix nil
@@ -116,9 +117,6 @@ If a file is modified, added or removed, reload the templates."
 (defvar tempel--path-templates nil
   "Templates loaded from the `tempel-path'.")
 
-(defvar tempel--path-timestamps nil
-  "Alist of files and modification times on the `tempel-path'.")
-
 (defvar tempel--history nil
   "Completion history used by `tempel-insert'.")
 
@@ -159,16 +157,6 @@ may be named with `tempel--name' or carry an evaluatable Lisp expression
      (and (not (car noinsert)) (symbol-name name)))
     ((or 'n 'n> '> '& '% 'o) " ")
     (_ "_")))
-
-(defun tempel--expand-path ()
-  "Return the list of files specified by `tempel-path'."
-  (let (files)
-    (dolist (path (if (listp tempel-path) tempel-path (list tempel-path)))
-      (when (file-exists-p path)
-        (if (file-directory-p path)
-            (setq files (nconc files (directory-files-recursively path "")))
-          (push path files))))
-    files))
 
 (defun tempel--annotate (templates width ellipsis sep name)
   "Annotate template NAME given the list of TEMPLATES.
@@ -399,7 +387,7 @@ PROMPT is the optional prompt/default value."
   "Prompt to save modified files in `tempel-path'."
   (cl-loop
    with all = nil
-   for (file . _ts) in tempel--path-timestamps do
+   for (file . _ts) in (car tempel--path-templates) do
    (when-let (buf (get-file-buffer file))
      (with-current-buffer buf
        (when (and (buffer-modified-p)
@@ -439,19 +427,22 @@ PROMPT is the optional prompt/default value."
 Additionally, save any files in `tempel-template-sources' that have been
 modified since the last time this function was called.
 This is meant to be a source in `tempel-template-sources'."
-  (when tempel-auto-reload
-    (let* ((files (tempel--expand-path))
-           (timestamps (cl-loop
-                        for f in files collect
-                        (cons f (time-convert
-                                 (file-attribute-modification-time
-                                  (file-attributes f))
-                                 'integer)))))
-      (unless (equal tempel--path-timestamps timestamps)
-        (setq tempel--path-timestamps timestamps
-              tempel--path-templates (mapcan #'tempel--file-read files)))))
+  (when (or (not tempel--path-templates) tempel-auto-reload)
+    (let* ((files
+            (cl-loop for path in (if (listp tempel-path) tempel-path (list tempel-path))
+                     nconc (file-expand-wildcards path t)))
+           (timestamps
+            (cl-loop
+             for f in files collect
+             (cons f (time-convert
+                      (file-attribute-modification-time
+                       (file-attributes f))
+                      'integer)))))
+      (unless (equal (car tempel--path-templates) timestamps)
+        (setq tempel--path-templates (cons timestamps
+                                           (mapcan #'tempel--file-read files))))))
   (cl-loop
-   for (modes plist . templates) in tempel--path-templates
+   for (modes plist . templates) in (cdr tempel--path-templates)
    if (tempel--condition-p modes plist)
    append templates))
 
@@ -462,11 +453,11 @@ This is meant to be a source in `tempel-template-sources'."
     for m in modes thereis
     (or (eq m #'fundamental-mode)
         (derived-mode-p m)))
-   (or (not (plist-member plist :condition))
+   (or (not (plist-member plist :when))
        (save-excursion
          (save-restriction
            (save-match-data
-             (eval (plist-get plist :condition) 'lexical)))))))
+             (eval (plist-get plist :when) 'lexical)))))))
 
 (defun tempel--templates ()
   "Return templates for current mode."
@@ -592,14 +583,14 @@ The completion table specifies the category `tempel'."
 (defun tempel--prefix-bounds ()
   "Return prefix bounds."
   (if tempel-trigger-prefix
-      (save-excursion
-        (let ((end (point))
-              (beg (re-search-backward
-                    (concat (regexp-quote tempel-trigger-prefix) "\\S-*")
-                    (line-beginning-position) 'noerror)))
-          (when beg
-            (cons (+ beg (length tempel-trigger-prefix)) end))))
-      (bounds-of-thing-at-point 'symbol)))
+      (let ((end (point))
+            (beg (save-excursion
+                   (search-backward tempel-trigger-prefix
+                                    (line-beginning-position) 'noerror))))
+        (when (and beg (save-excursion
+                         (not (re-search-backward "\\s-" beg 'noerror))))
+          (cons (+ beg (length tempel-trigger-prefix)) end)))
+    (bounds-of-thing-at-point 'symbol)))
 
 ;;;###autoload
 (defun tempel-expand (&optional interactive)
@@ -630,21 +621,16 @@ If INTERACTIVE is nil the function acts like a capf."
         (when (and tempel-trigger-prefix (not (tempel--prefix-bounds)))
           (insert tempel-trigger-prefix))
         (tempel--interactive #'tempel-complete))
-    (when-let (templates (tempel--templates))
-      (let* ((region (tempel--region))
-             (bounds (or (and (not region) (tempel--prefix-bounds))
-                         (and (not tempel-trigger-prefix) (cons (point) (point))))))
+    (let ((region (tempel--region)))
+      (when-let ((templates (tempel--templates))
+                 (bounds (or (and (not region) (tempel--prefix-bounds))
+                             (and (not tempel-trigger-prefix) (cons (point) (point))))))
         (list (car bounds) (cdr bounds)
               (tempel--completion-table templates)
               :exclusive 'no
               :company-kind (lambda (_) 'snippet)
               :exit-function (apply-partially #'tempel--exit templates region)
-              :company-prefix-length
-              (and tempel-trigger-prefix
-                   (save-excursion
-                     (goto-char (car bounds))
-                     (search-forward tempel-trigger-prefix (cdr bounds) 'noerror) t)
-                   t)
+              :company-prefix-length (and tempel-trigger-prefix t)
               :annotation-function
               (and tempel-complete-annotation
                    (apply-partially #'tempel--annotate
