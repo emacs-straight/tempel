@@ -140,6 +140,7 @@ may be named with `tempel--name' or carry an evaluatable Lisp expression
     (define-key map [remap backward-paragraph] #'tempel-previous)
     (define-key map [remap forward-paragraph] #'tempel-next)
     ;; Use concrete keys because of org mode
+    (define-key map "\M-\r" #'tempel-done)
     (define-key map "\M-{" #'tempel-previous)
     (define-key map "\M-}" #'tempel-next)
     (define-key map [M-up] #'tempel-previous)
@@ -194,9 +195,7 @@ REGION are the current region bouns"
 (defun tempel--range-modified (ov &rest _)
   "Range overlay OV modified."
   (when (and (not tempel--inhibit-hooks) (= (overlay-start ov) (overlay-end ov)))
-    (let ((st (overlay-get ov 'tempel--range)))
-      (setq tempel--active (cons st (delq st tempel--active)))
-      (tempel--disable))))
+    (tempel--disable (overlay-get ov 'tempel--range))))
 
 (defun tempel--field-modified (ov after beg end &optional _len)
   "Update field overlay OV.
@@ -268,7 +267,8 @@ If OV is alive, move it."
 (defun tempel--field (st &optional name init)
   "Add template field to ST.
 NAME is the optional field name.
-INIT is the optional initial input."
+INIT is the optional initial input.
+Return the added field."
   (let ((ov (make-overlay (point) (point))))
     (push ov (car st))
     (when name
@@ -288,10 +288,12 @@ INIT is the optional initial input."
       (overlay-put ov 'face 'tempel-default)
       (overlay-put ov 'tempel--default
                    (if (string-match-p ": \\'" init) 'end 'start)))
-    (tempel--synchronize-fields st ov)))
+    (tempel--synchronize-fields st ov)
+    ov))
 
 (defun tempel--form (st form)
-  "Add new template field evaluating FORM to ST."
+  "Add new template field evaluating FORM to ST.
+Return the added field."
   (let ((beg (point)))
     (condition-case nil
         (insert (eval form (cdr st)))
@@ -300,7 +302,8 @@ INIT is the optional initial input."
     (let ((ov (make-overlay beg (point) nil t)))
       (overlay-put ov 'face 'tempel-form)
       (overlay-put ov 'tempel--form form)
-      (push ov (car st)))))
+      (push ov (car st))
+      ov)))
 
 (defun tempel--element (st region elt)
   "Add template ELT to ST given the REGION."
@@ -320,10 +323,15 @@ INIT is the optional initial input."
     (`(l . ,lst) (dolist (e lst) (tempel--element st region e)))
     ((or 'p `(,(or 'p 'P) . ,rest)) (apply #'tempel--placeholder st rest))
     ((or 'r 'r> `(,(or 'r 'r>) . ,rest))
-     (if (not region) (apply #'tempel--placeholder st rest)
+     (if (not region)
+         (when-let (ov (apply #'tempel--placeholder st rest))
+           (unless rest
+             (overlay-put ov 'tempel--quit t)))
        (goto-char (cdr region))
        (when (eq (or (car-safe elt) elt) 'r>)
          (indent-region (car region) (cdr region) nil))))
+    ;; TEMPEL EXTENSION: Quit template immediately
+    ('q (overlay-put (tempel--field st) 'tempel--quit t))
     (_ (if-let (ret (run-hook-with-args-until-success 'tempel-user-elements elt))
            (tempel--element st region ret)
          ;; TEMPEL EXTENSION: Evaluate forms
@@ -332,7 +340,8 @@ INIT is the optional initial input."
 (defun tempel--placeholder (st &optional prompt name noinsert)
   "Handle placeholder element and add field with NAME to ST.
 If NOINSERT is non-nil do not insert a field, only bind the value to NAME.
-PROMPT is the optional prompt/default value."
+PROMPT is the optional prompt/default value.
+If a field was added, return it."
   (setq prompt
         (cond
          ((and (stringp prompt) noinsert) (read-string prompt))
@@ -340,7 +349,7 @@ PROMPT is the optional prompt/default value."
          ;; TEMPEL EXTENSION: Evaluate prompt
          (t (eval prompt (cdr st)))))
   (if noinsert
-      (setf (alist-get name (cdr st)) prompt)
+      (progn (setf (alist-get name (cdr st)) prompt) nil)
     (tempel--field st name prompt)))
 
 (defun tempel--insert (template region)
@@ -351,7 +360,7 @@ PROMPT is the optional prompt/default value."
     (eval (plist-get plist :pre) 'lexical)
     ;; TODO do we want to have the ability to reactivate snippets?
     (unless (eq buffer-undo-list t)
-      (push (list 'apply #'tempel--disable) buffer-undo-list))
+      (push '(apply tempel--disable) buffer-undo-list))
     (setf (alist-get 'tempel--active minor-mode-overriding-map-alist) tempel-map)
     (save-excursion
       ;; Split existing overlays, do not expand within existing field.
@@ -524,7 +533,12 @@ This is meant to be a source in `tempel-template-sources'."
   (cl-loop for i below (abs arg) do
            (if-let (next (tempel--find arg)) (goto-char next)
              (tempel-done)
-             (cl-return))))
+             (cl-return)))
+  ;; If the current field is marked as "quitting", disable its
+  ;; containing template right away.
+  (when-let* ((ov (tempel--field-at-point))
+              ((overlay-get ov 'tempel--quit)))
+    (tempel--disable (overlay-get ov 'tempel--field))))
 
 (defun tempel-previous (arg)
   "Move ARG fields backward and quit at the beginning."
@@ -550,9 +564,12 @@ This is meant to be a source in `tempel-template-sources'."
     (tempel-done)
     (delete-region beg end)))
 
-(defun tempel--disable ()
-  "Disable last template."
-  (when-let (st (pop tempel--active))
+(defun tempel--disable (&optional st)
+  "Disable template ST, or last template."
+  (if st
+      (setq tempel--active (delq st tempel--active))
+    (setq st (pop tempel--active)))
+  (when st
     (mapc #'delete-overlay (car st))
     (unless tempel--active
       (setq minor-mode-overriding-map-alist
