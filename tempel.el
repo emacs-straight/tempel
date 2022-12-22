@@ -299,7 +299,7 @@ Return the added field."
 Return the added field."
   (let ((beg (point)))
     (condition-case nil
-        (insert (eval form (cdr st)))
+        (insert (or (eval form (cdr st)) ""))
       ;; Ignore errors since some variables may not be defined yet.
       (void-variable nil))
     (let ((ov (make-overlay beg (point) nil t)))
@@ -525,9 +525,12 @@ This is meant to be a source in `tempel-template-sources'."
 
 (defun tempel--field-at-point ()
   "Return the field overlay at point."
-  (cl-loop for ov in (overlays-in (max (point-min) (1- (point)))
-                                  (min (point-max) (1+ (point))))
-           thereis (and (overlay-get ov 'tempel--field) ov)))
+  (let ((start most-positive-fixnum) field)
+    (dolist (ov (overlays-in (max (point-min) (1- (point)))
+                             (min (point-max) (1+ (point)))))
+      (when (and (overlay-get ov 'tempel--field) (< (overlay-start ov) start))
+        (setq start (overlay-start ov) field ov)))
+    field))
 
 (defun tempel-kill ()
   "Kill the field contents."
