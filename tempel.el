@@ -6,7 +6,7 @@
 ;; Maintainer: Daniel Mendler <mail@daniel-mendler.de>
 ;; Created: 2022
 ;; Version: 0.6
-;; Package-Requires: ((emacs "27.1"))
+;; Package-Requires: ((emacs "27.1") (compat "29.1.3.0"))
 ;; Homepage: https://github.com/minad/tempel
 
 ;; This file is part of GNU Emacs.
@@ -26,26 +26,32 @@
 
 ;;; Commentary:
 
-;; Tempel implements a simple template/snippet system. The template
-;; format is compatible with the template format of the Emacs Tempo
-;; library. Your templates are stored in the `tempel-path' (by default
-;; the file "templates" in the `user-emacs-directory'). Bind the
-;; commands `tempel-complete', `tempel-expand' or `tempel-insert' to
-;; some keys in your user configuration. You can jump with the keys M-{
-;; and M-} from field to field. `tempel-complete' and `tempel-expand'
-;; work best with the Corfu completion UI, while `tempel-insert' uses
-;; `completing-read' under the hood. You can also use `tempel-complete'
-;; and `tempel-expand' as `completion-at-point-functions'.
+;; Tempel implements a simple template/snippet system.  The template format
+;; is compatible with the template format of the Emacs Tempo library.  Your
+;; templates are stored in the `tempel-path' (by default the file
+;; "templates" in the `user-emacs-directory').  Bind the commands
+;; `tempel-complete', `tempel-expand' or `tempel-insert' to some keys in
+;; your user configuration.  You can jump with the keys M-{ and M-} from
+;; field to field.  `tempel-complete' and `tempel-expand' work best with
+;; the Corfu completion UI, while `tempel-insert' uses `completing-read'
+;; under the hood.  You can also use `tempel-complete' and `tempel-expand'
+;; as `completion-at-point-functions'.
 
 ;;; Code:
 
+(require 'compat)
 (eval-when-compile
   (require 'subr-x)
   (require 'cl-lib))
 
 (defgroup tempel nil
   "Tempo templates/snippets with in-buffer field editing."
-  :group 'editing
+  :link '(info-link :tag "Info Manual" "(tempel)")
+  :link '(url-link :tag "Homepage" "https://github.com/minad/tempel")
+  :link '(emacs-library-link :tag "Library Source" "tempel.el")
+  :group 'abbrev
+  :group 'tools
+  :group 'matching
   :prefix "tempel-")
 
 (defcustom tempel-path (expand-file-name "templates" user-emacs-directory)
@@ -84,7 +90,7 @@ nil or a new template element, which is subsequently evaluated."
 (defcustom tempel-template-sources
   (list #'tempel-path-templates)
   "List of template sources.
-A source can either be a function or a variable symbol. The functions
+A source can either be a function or a variable symbol.  The functions
 must return a list of templates which apply to the buffer or context."
   :type 'hook)
 
@@ -129,53 +135,64 @@ If a file is modified, added or removed, reload the templates."
 (defvar-local tempel--active nil
   "List of active templates.
 Each template state is a pair, where the car is a list of overlays and
-the cdr is an alist of variable bindings. The template state is attached
-to each overlay as the property `tempel--field'. Furthermore overlays
+the cdr is an alist of variable bindings.  The template state is attached
+to each overlay as the property `tempel--field'.  Furthermore overlays
 may be named with `tempel--name' or carry an evaluatable Lisp expression
 `tempel--form'.")
 
-(defvar tempel-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [remap beginning-of-buffer] #'tempel-beginning)
-    (define-key map [remap end-of-buffer] #'tempel-end)
-    (define-key map [remap kill-sentence] #'tempel-kill)
-    (define-key map [remap keyboard-escape-quit] #'tempel-abort)
-    (define-key map [remap backward-paragraph] #'tempel-previous)
-    (define-key map [remap forward-paragraph] #'tempel-next)
-    ;; Use concrete keys because of org mode
-    (define-key map "\M-\r" #'tempel-done)
-    (define-key map "\M-{" #'tempel-previous)
-    (define-key map "\M-}" #'tempel-next)
-    (define-key map [M-up] #'tempel-previous)
-    (define-key map [M-down] #'tempel-next)
-    map)
-  "Keymap to navigate across template fields.")
+(defvar-keymap tempel-map
+  :doc "Keymap to navigate across template fields."
+  "<remap> <beginning-of-buffer>" #'tempel-beginning
+  "<remap> <end-of-buffer>" #'tempel-end
+  "<remap> <kill-sentence>" #'tempel-kill
+  "<remap> <keyboard-escape-quit>" #'tempel-abort
+  "<remap> <backward-paragraph>" #'tempel-previous
+  "<remap> <forward-paragraph>" #'tempel-next
+  ;; Use concrete keys because of org mode
+  "M-RET" #'tempel-done
+  "M-{" #'tempel-previous
+  "M-}" #'tempel-next
+  "M-<up>" #'tempel-previous
+  "M-<down>" #'tempel-next)
 
-(defun tempel--print-element (elt)
-  "Return string representation of template ELT."
-  (pcase elt
-    ('nil nil)
-    ((pred stringp) elt)
-    (`(s ,name) (symbol-name name))
-    (`(,(or 'p 'P) ,_ ,name . ,noinsert)
-     (and (not (car noinsert)) (symbol-name name)))
-    ((or 'n 'n> '> '& '% 'o) " ")
-    (_ "_")))
+(defun tempel--print-template (elts)
+  "Print template ELTS."
+  (cl-loop
+   for elt in elts until (keywordp elt) concat
+   (pcase elt
+     ('nil nil)
+     ((pred stringp) (propertize elt 'face 'completions-annotations))
+     (`(s ,name) (propertize (symbol-name name) 'face 'completions-annotations))
+     (`(,(or 'p 'P) ,_ ,name . ,noinsert)
+      (and (not (car noinsert))
+           (propertize (symbol-name name) 'face 'completions-annotations)))
+     ('> #(" " 0 1 (face completions-annotations)))
+     ('n> #("\n " 0 2 (face completions-annotations)))
+     ((or 'n '& '% 'o) #("\n" 0 1 (face completions-annotations)))
+     (_ #("_" 0 1 (face shadow))))))
 
 (defun tempel--annotate (templates width ellipsis sep name)
   "Annotate template NAME given the list of TEMPLATES.
 WIDTH, SEP and ELLIPSIS configure the formatting."
-  (when-let* ((name (intern-soft name))
-              (elts (cdr (assoc name templates))))
-    (concat sep
-            (truncate-string-to-width
-             (replace-regexp-in-string
-              "_+" #("_" 0 1 (face shadow))
-              (propertize (replace-regexp-in-string
-                           "\\s-+" " "
-                           (mapconcat #'tempel--print-element elts ""))
-                          'face 'completions-annotations))
-             width 0 ?\s ellipsis))))
+  (when-let ((name (intern-soft name))
+             (elts (cdr (assoc name templates))))
+    (concat sep (truncate-string-to-width
+                 (replace-regexp-in-string
+                  "[ \t\n\r]+" #(" " 0 1 (face completions-annotations))
+                  (tempel--print-template elts))
+                 width 0 ?\s ellipsis))))
+
+(defun tempel--info-buffer (templates fun name)
+  "Create info buffer for template NAME.
+FUN inserts the info into the buffer.
+TEMPLATES is the list of templates."
+  (when-let ((name (intern-soft name))
+             (elts (cdr (assoc name templates))))
+    (with-current-buffer (get-buffer-create " *tempel-info*")
+      (setq buffer-read-only t)
+      (let ((inhibit-read-only t))
+        (erase-buffer)
+        (funcall fun elts)))))
 
 (defun tempel--delete-word (word)
   "Delete WORD before point."
@@ -188,8 +205,8 @@ WIDTH, SEP and ELLIPSIS configure the formatting."
 TEMPLATES is the list of templates.
 REGION are the current region bouns"
   (unless (eq status 'exact)
-    (when-let* ((sym (intern-soft name))
-                (template (alist-get sym templates)))
+    (when-let ((sym (intern-soft name))
+               (template (alist-get sym templates)))
       (tempel--delete-word name)
       (when tempel-trigger-prefix
         (tempel--delete-word tempel-trigger-prefix))
@@ -290,7 +307,7 @@ Return the added field."
     (when (and init (get-text-property 0 'tempel--default init))
       (overlay-put ov 'face 'tempel-default)
       (overlay-put ov 'tempel--default
-                   (if (string-match-p ": \\'" init) 'end 'start)))
+                   (if (string-suffix-p ": " init) 'end 'start)))
     (tempel--synchronize-fields st ov)
     ov))
 
@@ -447,7 +464,7 @@ modified since the last time this function was called.
 This is meant to be a source in `tempel-template-sources'."
   (when (or (not tempel--path-templates) tempel-auto-reload)
     (let* ((files
-            (cl-loop for path in (if (listp tempel-path) tempel-path (list tempel-path))
+            (cl-loop for path in (ensure-list tempel-path)
                      nconc (file-expand-wildcards path t)))
            (timestamps
             (cl-loop
@@ -548,8 +565,8 @@ This is meant to be a source in `tempel-template-sources'."
              (cl-return)))
   ;; If the current field is marked as "quitting", disable its
   ;; containing template right away.
-  (when-let* ((ov (tempel--field-at-point))
-              ((overlay-get ov 'tempel--quit)))
+  (when-let ((ov (tempel--field-at-point))
+             ((overlay-get ov 'tempel--quit)))
     (tempel--done (overlay-get ov 'tempel--field))))
 
 (defun tempel-previous (arg)
@@ -638,12 +655,12 @@ If INTERACTIVE is nil the function acts like a capf."
   (interactive (list t))
   (if interactive
       (tempel--interactive #'tempel-expand)
-    (when-let* ((templates (tempel--templates))
-                (bounds (tempel--prefix-bounds))
-                (name (buffer-substring-no-properties
-                       (car bounds) (cdr bounds)))
-                (sym (intern-soft name))
-                (template (assq sym templates)))
+    (when-let ((templates (tempel--templates))
+               (bounds (tempel--prefix-bounds))
+               (name (buffer-substring-no-properties
+                      (car bounds) (cdr bounds)))
+               (sym (intern-soft name))
+               (template (assq sym templates)))
       (setq templates (list template))
       (list (car bounds) (cdr bounds)
             (tempel--completion-table templates)
@@ -670,6 +687,16 @@ If INTERACTIVE is nil the function acts like a capf."
               :company-kind (lambda (_) 'snippet)
               :exit-function (apply-partially #'tempel--exit templates region)
               :company-prefix-length (and tempel-trigger-prefix t)
+              :company-doc-buffer
+              (apply-partially #'tempel--info-buffer templates
+                               (lambda (elts)
+                                 (insert (tempel--print-template elts))
+                                 (current-buffer)))
+              :company-location
+              (apply-partially #'tempel--info-buffer templates
+                               (lambda (elts)
+                                 (pp elts (current-buffer))
+                                 (list (current-buffer))))
               :annotation-function
               (and tempel-complete-annotation
                    (apply-partially #'tempel--annotate
@@ -701,7 +728,9 @@ If called interactively, select a template with `completing-read'."
 ;;;###autoload
 (defmacro tempel-key (key template-or-name &optional map)
   "Bind KEY to TEMPLATE-OR-NAME in MAP."
-  `(define-key ,(or map 'global-map) ,(kbd key)
+  (unless (key-valid-p key)
+    (error "Invalid key %s" key))
+  `(define-key ,(or map 'global-map) ,(key-parse key)
      ,(if (consp template-or-name)
           `(lambda ()
              (interactive)
