@@ -216,30 +216,32 @@ REGION are the current region bounds."
 (defun tempel--range-modified (ov &rest _)
   "Range overlay OV modified."
   (when (and (not tempel--inhibit-hooks) (= (overlay-start ov) (overlay-end ov)))
-    (tempel--disable (overlay-get ov 'tempel--range))))
+    (let (inhibit-modification-hooks)
+      (tempel--disable (overlay-get ov 'tempel--range)))))
 
 (defun tempel--field-modified (ov after beg end &optional _len)
   "Update field overlay OV.
 AFTER is non-nil after the modification.
 BEG and END are the boundaries of the modification."
   (unless tempel--inhibit-hooks
-    (cond
-     ;; Erase default before modification if at beginning or end
-     ((and (not after) (overlay-get ov 'tempel--default)
-           (or (= beg (overlay-start ov)) (= end (overlay-end ov))))
-      (delete-region (overlay-start ov) (overlay-end ov)))
-     ;; Update field after modification
-     (after
-      (let ((st (overlay-get ov 'tempel--field)))
-        (unless undo-in-progress
-          (move-overlay ov (overlay-start ov) (max end (overlay-end ov))))
-        (when-let (name (overlay-get ov 'tempel--name))
-          (setf (alist-get name (cdr st))
-                (buffer-substring-no-properties
-                 (overlay-start ov) (overlay-end ov))))
-        (unless undo-in-progress
-          (tempel--synchronize-fields st ov)))))
-    (tempel--update-mark ov)))
+    (let (inhibit-modification-hooks)
+      (cond
+       ;; Erase default before modification if at beginning or end
+       ((and (not after) (overlay-get ov 'tempel--default)
+             (or (= beg (overlay-start ov)) (= end (overlay-end ov))))
+        (delete-region (overlay-start ov) (overlay-end ov)))
+       ;; Update field after modification
+       (after
+        (let ((st (overlay-get ov 'tempel--field)))
+          (unless undo-in-progress
+            (move-overlay ov (overlay-start ov) (max end (overlay-end ov))))
+          (when-let (name (overlay-get ov 'tempel--name))
+            (setf (alist-get name (cdr st))
+                  (buffer-substring-no-properties
+                   (overlay-start ov) (overlay-end ov))))
+          (unless undo-in-progress
+            (tempel--synchronize-fields st ov)))))
+      (tempel--update-mark ov))))
 
 (defun tempel--synchronize-fields (st current)
   "Synchronize fields of ST, except CURRENT overlay."
@@ -257,7 +259,7 @@ BEG and END are the boundaries of the modification."
                     (max (overlay-end range) (overlay-end ov))))))
 
 (defun tempel--replace (beg end ov str)
-  "Replace region beween BEG and END with STR.
+  "Replace region between BEG and END with STR.
 If OV is alive, move it."
   (let ((old (buffer-substring-no-properties beg end)))
     (setq ov (and ov (overlay-buffer ov) ov))
@@ -398,16 +400,16 @@ If a field was added, return it."
             (setf (overlay-end ov) (point)))))
       ;; Activate template
       (let ((st (cons nil nil))
-            (range (point))
+            (ov (point))
             (tempel--inhibit-hooks t))
         (while (and template (not (keywordp (car template))))
           (tempel--element st region (pop template)))
-        (setq range (make-overlay range (point) nil t))
-        (push range (car st))
-        (overlay-put range 'modification-hooks (list #'tempel--range-modified))
-        (overlay-put range 'tempel--range st)
-        (overlay-put range 'tempel--post (plist-get plist :post))
-        ;;(overlay-put range 'face 'region) ;; TODO debug
+        (setq ov (make-overlay ov (point) nil t))
+        (push ov (car st))
+        (overlay-put ov 'modification-hooks (list #'tempel--range-modified))
+        (overlay-put ov 'tempel--range st)
+        (overlay-put ov 'tempel--post (plist-get plist :post))
+        ;;(overlay-put ov 'face 'region) ;; TODO debug
         (push st tempel--active)))
     (cond
      ((cl-loop for ov in (caar tempel--active)
