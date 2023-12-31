@@ -8,7 +8,7 @@
 ;; Version: 1.0
 ;; Package-Requires: ((emacs "27.1") (compat "29.1.4.0"))
 ;; Homepage: https://github.com/minad/tempel
-;; Keywords: abbrev, languages, tools, wp
+;; Keywords: abbrev, languages, tools, text
 
 ;; This file is part of GNU Emacs.
 
@@ -609,9 +609,7 @@ This is meant to be a source in `tempel-template-sources'."
   (when st
     (mapc #'delete-overlay (car st))
     (unless tempel--active
-      (setq minor-mode-overriding-map-alist
-            (delq (assq-delete-all 'tempel--active minor-mode-overriding-map-alist)
-                  minor-mode-overriding-map-alist)))))
+      (cl-callf2 assq-delete-all 'tempel--active minor-mode-overriding-map-alist))))
 
 (defun tempel-done ()
   "Template completion is done."
