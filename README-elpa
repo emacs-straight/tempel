@@ -417,7 +417,7 @@ Table of Contents
 
   ┌────
   │ (tempel-key "C-c t f" fun emacs-lisp-mode-map)
-  │ (tempel-key "C-c t d" (format-time-string "%Y-%m-%d"))
+  │ (tempel-key "C-c t d" ("DATE: " (format-time-string "%Y-%m-%d")))
   └────
 
   Internally `tempel-key' uses `tempel-insert' to trigger the

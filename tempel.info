@@ -1,4 +1,4 @@
-This is docx1umIl.info, produced by makeinfo version 6.8 from
+This is docpr7vJQ.info, produced by makeinfo version 6.8 from
 tempel.texi.
 
 INFO-DIR-SECTION Emacs misc features
@@ -7,7 +7,7 @@ START-INFO-DIR-ENTRY
 END-INFO-DIR-ENTRY
 
 
-File: docx1umIl.info,  Node: Top,  Next: Template expansion,  Up: (dir)
+File: docpr7vJQ.info,  Node: Top,  Next: Template expansion,  Up: (dir)
 
 TempEl - Simple templates for Emacs
 ***********************************
@@ -36,7 +36,7 @@ in-buffer completion.
 * Contributions::
 
 
-File: docx1umIl.info,  Node: Template expansion,  Next: Configuration,  Prev: Top,  Up: Top
+File: docpr7vJQ.info,  Node: Template expansion,  Next: Configuration,  Prev: Top,  Up: Top
 
 1 Template expansion
 ********************
@@ -69,7 +69,7 @@ you inspect the ‘tempel-map’ and look at the provided key bindings.  You
 can customize the key bindings there.
 
 
-File: docx1umIl.info,  Node: Configuration,  Next: Template file format,  Prev: Template expansion,  Up: Top
+File: docpr7vJQ.info,  Node: Configuration,  Next: Template file format,  Prev: Template expansion,  Up: Top
 
 2 Configuration
 ***************
@@ -125,7 +125,7 @@ contributions.
        (global-corfu-mode))
 
 
-File: docx1umIl.info,  Node: Template file format,  Next: Template syntax,  Prev: Configuration,  Up: Top
+File: docpr7vJQ.info,  Node: Template file format,  Next: Template syntax,  Prev: Configuration,  Up: Top
 
 3 Template file format
 **********************
@@ -310,7 +310,7 @@ which can be useful if you want to write complex templates.
      ;; End:
 
 
-File: docx1umIl.info,  Node: Template syntax,  Next: Defining custom elements,  Prev: Template file format,  Up: Top
+File: docpr7vJQ.info,  Node: Template syntax,  Next: Defining custom elements,  Prev: Template file format,  Up: Top
 
 4 Template syntax
 *****************
@@ -353,7 +353,7 @@ tempo.el.  We document the important ones here:
    Use caution with templates which execute arbitrary code!
 
 
-File: docx1umIl.info,  Node: Defining custom elements,  Next: Adding template sources,  Prev: Template syntax,  Up: Top
+File: docpr7vJQ.info,  Node: Defining custom elements,  Next: Adding template sources,  Prev: Template syntax,  Up: Top
 
 5 Defining custom elements
 **************************
@@ -380,7 +380,7 @@ element.
      (package (i header) r n n (i provide))
 
 
-File: docx1umIl.info,  Node: Adding template sources,  Next: Hooking into the Abbrev mechanism,  Prev: Defining custom elements,  Up: Top
+File: docpr7vJQ.info,  Node: Adding template sources,  Next: Hooking into the Abbrev mechanism,  Prev: Defining custom elements,  Up: Top
 
 6 Adding template sources
 *************************
@@ -403,7 +403,7 @@ global or local template variables to your user configuration:
      (add-to-list 'tempel-template-sources 'my-local-templates)
 
 
-File: docx1umIl.info,  Node: Hooking into the Abbrev mechanism,  Next: Binding important templates to a key,  Prev: Adding template sources,  Up: Top
+File: docpr7vJQ.info,  Node: Hooking into the Abbrev mechanism,  Next: Binding important templates to a key,  Prev: Adding template sources,  Up: Top
 
 7 Hooking into the Abbrev mechanism
 ***********************************
@@ -414,7 +414,7 @@ templates will be available via ‘expand-abbrev’ which is usually bound
 to ‘C-x '’.
 
 
-File: docx1umIl.info,  Node: Binding important templates to a key,  Next: Alternatives,  Prev: Hooking into the Abbrev mechanism,  Up: Top
+File: docpr7vJQ.info,  Node: Binding important templates to a key,  Next: Alternatives,  Prev: Hooking into the Abbrev mechanism,  Up: Top
 
 8 Binding important templates to a key
 **************************************
@@ -424,7 +424,7 @@ Important templates can be bound to a key with the small utility macro
 and optionally a map.
 
      (tempel-key "C-c t f" fun emacs-lisp-mode-map)
-     (tempel-key "C-c t d" (format-time-string "%Y-%m-%d"))
+     (tempel-key "C-c t d" ("DATE: " (format-time-string "%Y-%m-%d")))
 
    Internally ‘tempel-key’ uses ‘tempel-insert’ to trigger the
 insertion.  Depending on the style of your user configuration you may
@@ -434,7 +434,7 @@ bind templates via use-package
 (https://github.com/noctuid/general) or similar keybinding packages.
 
 
-File: docx1umIl.info,  Node: Alternatives,  Next: Contributions,  Prev: Binding important templates to a key,  Up: Top
+File: docpr7vJQ.info,  Node: Alternatives,  Next: Contributions,  Prev: Binding important templates to a key,  Up: Top
 
 9 Alternatives
 **************
@@ -475,7 +475,7 @@ Schumacher (GitHub link (https://github.com/nschum/tempo-snippets.el)).
      system inspired by Textmate snippets
 
 
-File: docx1umIl.info,  Node: Contributions,  Prev: Alternatives,  Up: Top
+File: docpr7vJQ.info,  Node: Contributions,  Prev: Alternatives,  Up: Top
 
 10 Contributions
 ****************
@@ -496,8 +496,8 @@ Node: Defining custom elements15584
 Node: Adding template sources16696
 Node: Hooking into the Abbrev mechanism17754
 Node: Binding important templates to a key18222
-Node: Alternatives19087
-Node: Contributions20952
+Node: Alternatives19098
+Node: Contributions20963
 
 End Tag Table
 
