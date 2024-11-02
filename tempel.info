@@ -1,4 +1,4 @@
-This is docpr7vJQ.info, produced by makeinfo version 6.8 from
+This is doc1eypxG.info, produced by makeinfo version 6.8 from
 tempel.texi.
 
 INFO-DIR-SECTION Emacs misc features
@@ -7,7 +7,7 @@ START-INFO-DIR-ENTRY
 END-INFO-DIR-ENTRY
 
 
-File: docpr7vJQ.info,  Node: Top,  Next: Template expansion,  Up: (dir)
+File: doc1eypxG.info,  Node: Top,  Next: Template expansion,  Up: (dir)
 
 TempEl - Simple templates for Emacs
 ***********************************
@@ -36,7 +36,7 @@ in-buffer completion.
 * Contributions::
 
 
-File: docpr7vJQ.info,  Node: Template expansion,  Next: Configuration,  Prev: Top,  Up: Top
+File: doc1eypxG.info,  Node: Template expansion,  Next: Configuration,  Prev: Top,  Up: Top
 
 1 Template expansion
 ********************
@@ -69,7 +69,7 @@ you inspect the ‘tempel-map’ and look at the provided key bindings.  You
 can customize the key bindings there.
 
 
-File: docpr7vJQ.info,  Node: Configuration,  Next: Template file format,  Prev: Template expansion,  Up: Top
+File: doc1eypxG.info,  Node: Configuration,  Next: Template file format,  Prev: Template expansion,  Up: Top
 
 2 Configuration
 ***************
@@ -125,22 +125,22 @@ contributions.
        (global-corfu-mode))
 
 
-File: docpr7vJQ.info,  Node: Template file format,  Next: Template syntax,  Prev: Configuration,  Up: Top
+File: doc1eypxG.info,  Node: Template file format,  Next: Template syntax,  Prev: Configuration,  Up: Top
 
 3 Template file format
 **********************
 
 The templates are defined in a Lisp data file configured by
 ‘tempel-path’.  Lisp data files are files containing Lisp s-expressions
-(see ‘lisp-data-mode’).  By default the file ‘~/.config/emacs/templates’
-is used.  The templates are grouped by major mode with an optional
-‘:when’ condition.  Each template is a list in the concise form of the
-Emacs Tempo syntax.  The first element of each list is the name of the
-template.  I recommend to use avoid special letters for the template
-names, since special letters may carry meaning during completion
-filtering and as such make it harder to select the desired template.
-Thus the name ‘lett’ is better than ‘let*’.  Behind the name, the Tempo
-syntax elements follow.
+(see ‘lisp-data-mode’).  By default the file ‘templates’ in the
+‘user-emacs-directory’ is used, e.g., ‘~/.config/emacs/templates’.  The
+templates are grouped by major mode with an optional ‘:when’ condition.
+Each template is a list in the concise form of the Emacs Tempo syntax.
+The first element of each list is the name of the template.  I recommend
+to use avoid special letters for the template names, since special
+letters may carry meaning during completion filtering and as such make
+it harder to select the desired template.  Thus the name ‘lett’ is
+better than ‘let*’.  Behind the name, the Tempo syntax elements follow.
 
    In addition, each template may specify a ‘:pre’ and/or ‘:post’ key
 with a FORM that is evaluated before the template is expanded or after
@@ -310,7 +310,7 @@ which can be useful if you want to write complex templates.
      ;; End:
 
 
-File: docpr7vJQ.info,  Node: Template syntax,  Next: Defining custom elements,  Prev: Template file format,  Up: Top
+File: doc1eypxG.info,  Node: Template syntax,  Next: Defining custom elements,  Prev: Template file format,  Up: Top
 
 4 Template syntax
 *****************
@@ -353,7 +353,7 @@ tempo.el.  We document the important ones here:
    Use caution with templates which execute arbitrary code!
 
 
-File: docpr7vJQ.info,  Node: Defining custom elements,  Next: Adding template sources,  Prev: Template syntax,  Up: Top
+File: doc1eypxG.info,  Node: Defining custom elements,  Next: Adding template sources,  Prev: Template syntax,  Up: Top
 
 5 Defining custom elements
 **************************
@@ -380,7 +380,7 @@ element.
      (package (i header) r n n (i provide))
 
 
-File: docpr7vJQ.info,  Node: Adding template sources,  Next: Hooking into the Abbrev mechanism,  Prev: Defining custom elements,  Up: Top
+File: doc1eypxG.info,  Node: Adding template sources,  Next: Hooking into the Abbrev mechanism,  Prev: Defining custom elements,  Up: Top
 
 6 Adding template sources
 *************************
@@ -403,7 +403,7 @@ global or local template variables to your user configuration:
      (add-to-list 'tempel-template-sources 'my-local-templates)
 
 
-File: docpr7vJQ.info,  Node: Hooking into the Abbrev mechanism,  Next: Binding important templates to a key,  Prev: Adding template sources,  Up: Top
+File: doc1eypxG.info,  Node: Hooking into the Abbrev mechanism,  Next: Binding important templates to a key,  Prev: Adding template sources,  Up: Top
 
 7 Hooking into the Abbrev mechanism
 ***********************************
@@ -414,7 +414,7 @@ templates will be available via ‘expand-abbrev’ which is usually bound
 to ‘C-x '’.
 
 
-File: docpr7vJQ.info,  Node: Binding important templates to a key,  Next: Alternatives,  Prev: Hooking into the Abbrev mechanism,  Up: Top
+File: doc1eypxG.info,  Node: Binding important templates to a key,  Next: Alternatives,  Prev: Hooking into the Abbrev mechanism,  Up: Top
 
 8 Binding important templates to a key
 **************************************
@@ -434,7 +434,7 @@ bind templates via use-package
 (https://github.com/noctuid/general) or similar keybinding packages.
 
 
-File: docpr7vJQ.info,  Node: Alternatives,  Next: Contributions,  Prev: Binding important templates to a key,  Up: Top
+File: doc1eypxG.info,  Node: Alternatives,  Next: Contributions,  Prev: Binding important templates to a key,  Up: Top
 
 9 Alternatives
 **************
@@ -475,7 +475,7 @@ Schumacher (GitHub link (https://github.com/nschum/tempo-snippets.el)).
      system inspired by Textmate snippets
 
 
-File: docpr7vJQ.info,  Node: Contributions,  Prev: Alternatives,  Up: Top
+File: doc1eypxG.info,  Node: Contributions,  Prev: Alternatives,  Up: Top
 
 10 Contributions
 ****************
@@ -491,13 +491,13 @@ Node: Top206
 Node: Template expansion1182
 Node: Configuration2936
 Node: Template file format5137
-Node: Template syntax13656
-Node: Defining custom elements15584
-Node: Adding template sources16696
-Node: Hooking into the Abbrev mechanism17754
-Node: Binding important templates to a key18222
-Node: Alternatives19098
-Node: Contributions20963
+Node: Template syntax13712
+Node: Defining custom elements15640
+Node: Adding template sources16752
+Node: Hooking into the Abbrev mechanism17810
+Node: Binding important templates to a key18278
+Node: Alternatives19154
+Node: Contributions21019
 
 End Tag Table
 
