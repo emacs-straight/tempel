@@ -172,16 +172,17 @@ may be named with `tempel--name' or carry an evaluatable Lisp expression
      ((or 'n '& '% 'o) #("\n" 0 1 (face completions-annotations)))
      (_ #("_" 0 1 (face shadow))))))
 
-(defun tempel--annotate (templates width ellipsis sep name)
+(defun tempel--annotate (templates width sep name)
   "Annotate template NAME given the list of TEMPLATES.
-WIDTH, SEP and ELLIPSIS configure the formatting."
+WIDTH and SEP configure the formatting."
   (when-let ((name (intern-soft name))
              (elts (cdr (assoc name templates))))
-    (concat sep (truncate-string-to-width
-                 (replace-regexp-in-string
-                  "[ \t\n\r]+" #(" " 0 1 (face completions-annotations))
-                  (tempel--print-template elts))
-                 width 0 ?\s ellipsis))))
+    (concat sep (string-trim
+                 (truncate-string-to-width
+                  (replace-regexp-in-string
+                   "[ \t\n\r]+" #(" " 0 1 (face completions-annotations))
+                   (tempel--print-template elts))
+                  width)))))
 
 (defun tempel--info-buffer (templates fun name)
   "Create info buffer for template NAME.
@@ -365,7 +366,13 @@ Return the added field."
          (indent-region (car region) (cdr region) nil))))
     ;; TEMPEL EXTENSION: Quit template immediately
     ('q (overlay-put (tempel--field st) 'tempel--enter #'tempel--done))
-    (_ (if-let ((ret (run-hook-with-args-until-success 'tempel-user-elements elt)))
+    (_ (if-let ((ret (run-hook-wrapped 'tempel-user-elements
+                                       (lambda (hook elt fields)
+                                         (condition-case nil
+                                             (funcall hook elt)
+                                           (wrong-number-of-arguments
+                                            (funcall hook elt fields))))
+                                       elt (cdr st))))
            (tempel--element st region ret)
          ;; TEMPEL EXTENSION: Evaluate forms
          (tempel--form st elt)))))
@@ -729,7 +736,7 @@ Capf, otherwise like an interactive completion command."
               :annotation-function
               (and tempel-complete-annotation
                    (apply-partially #'tempel--annotate
-                                    templates tempel-complete-annotation nil " ")))))))
+                                    templates tempel-complete-annotation " ")))))))
 
 ;;;###autoload
 (defun tempel-insert (template-or-name)
@@ -744,7 +751,7 @@ If called interactively, select a template with `completing-read'."
              (and tempel-insert-annotation
                   (list :annotation-function
                         (apply-partially
-                         #'tempel--annotate templates tempel-insert-annotation t
+                         #'tempel--annotate templates tempel-insert-annotation
                          #("  " 1 2 (display (space :align-to (+ left 20)))))))))
        (unless template-or-name
          (setq template-or-name (intern-soft
