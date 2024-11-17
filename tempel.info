@@ -1,4 +1,4 @@
-This is docefAebJ.info, produced by makeinfo version 6.8 from
+This is docNc54Uo.info, produced by makeinfo version 6.8 from
 tempel.texi.
 
 INFO-DIR-SECTION Emacs misc features
@@ -7,7 +7,7 @@ START-INFO-DIR-ENTRY
 END-INFO-DIR-ENTRY
 
 
-File: docefAebJ.info,  Node: Top,  Next: Template expansion,  Up: (dir)
+File: docNc54Uo.info,  Node: Top,  Next: Template expansion,  Up: (dir)
 
 TempEl - Simple templates for Emacs
 ***********************************
@@ -36,7 +36,7 @@ in-buffer completion.
 * Contributions::
 
 
-File: docefAebJ.info,  Node: Template expansion,  Next: Configuration,  Prev: Top,  Up: Top
+File: docNc54Uo.info,  Node: Template expansion,  Next: Configuration,  Prev: Top,  Up: Top
 
 1 Template expansion
 ********************
@@ -69,7 +69,7 @@ you inspect the ‘tempel-map’ and look at the provided key bindings.  You
 can customize the key bindings there.
 
 
-File: docefAebJ.info,  Node: Configuration,  Next: Template file format,  Prev: Template expansion,  Up: Top
+File: docNc54Uo.info,  Node: Configuration,  Next: Template file format,  Prev: Template expansion,  Up: Top
 
 2 Configuration
 ***************
@@ -125,7 +125,7 @@ contributions.
        (global-corfu-mode))
 
 
-File: docefAebJ.info,  Node: Template file format,  Next: Template syntax,  Prev: Configuration,  Up: Top
+File: docNc54Uo.info,  Node: Template file format,  Next: Template syntax,  Prev: Configuration,  Up: Top
 
 3 Template file format
 **********************
@@ -194,6 +194,12 @@ which can be useful if you want to write complex templates.
      (trivlist "\\begin{trivlist}\n" r> n> "\\end{trivlist}")
      (verbatim "\\begin{verbatim}\n" r> n> "\\end{verbatim}")
      (verbatimm "\\begin{verbatim*}\n" r> n> "\\end{verbatim*}")
+     (matrix (p (read-number "Rows: ") rows noinsert)
+             (p (read-number "Cols: ") cols noinsert)
+             "\\begin{" (p "pmatrix" type) "}" n
+             (* (1- rows) (p " ") (* (1- cols) " & " (p " ")) "\\\\" n)
+             (p " ") (* (1- cols) " & " (p " ")) n
+             "\\end{" type "}")
 
      texinfo-mode
 
@@ -241,11 +247,12 @@ which can be useful if you want to write complex templates.
      (advice "(defun " (p "adv" name) " (&rest app)" n> p n> "(apply app))" n>
              "(advice-add #'" (p "fun") " " (p ":around") " #'" (s name) ")")
      (header ";;; " (file-name-nondirectory (or (buffer-file-name) (buffer-name)))
-             " -- " p " -*- lexical-binding: t -*-" n
+             " --- " p " -*- lexical-binding: t -*-" n
              ";;; Commentary:" n ";;; Code:" n n)
      (provide "(provide '" (file-name-base (or (buffer-file-name) (buffer-name))) ")" n
               ";;; " (file-name-nondirectory (or (buffer-file-name) (buffer-name)))
               " ends here" n)
+     (package (i header) r n n (i provide))
 
      eshell-mode
 
@@ -269,6 +276,11 @@ which can be useful if you want to write complex templates.
           "--8<---------------cut here---------------end--------------->8---" n)
      (rot13 (p "plain text" text) n "----" n (rot13 text))
      (calc (p "taylor(sin(x),x=0,3)" formula) n "----" n (format "%s" (calc-eval formula)))
+     (table (p (read-number "Rows: ") rows noinsert)
+            (p (read-number "Cols: ") cols noinsert)
+            "| " (p "  ") (* (1- cols) " | " (p "  ")) " |" n
+            "|" (* cols "----|") n
+            (* rows "| " (p "  ") (* (1- cols) " | " (p "  ")) " |" n))
 
      rst-mode
 
@@ -310,7 +322,7 @@ which can be useful if you want to write complex templates.
      ;; End:
 
 
-File: docefAebJ.info,  Node: Template syntax,  Next: Defining custom elements,  Prev: Template file format,  Up: Top
+File: docNc54Uo.info,  Node: Template syntax,  Next: Defining custom elements,  Prev: Template file format,  Up: Top
 
 4 Template syntax
 *****************
@@ -353,7 +365,7 @@ tempo.el.  We document the important ones here:
    Use caution with templates which execute arbitrary code!
 
 
-File: docefAebJ.info,  Node: Defining custom elements,  Next: Adding template sources,  Prev: Template syntax,  Up: Top
+File: docNc54Uo.info,  Node: Defining custom elements,  Next: Adding template sources,  Prev: Template syntax,  Up: Top
 
 5 Defining custom elements
 **************************
@@ -373,10 +385,12 @@ template)’ to include templates by name in another template.
    The following example templates uses the newly defined include
 element.
 
-     (header ";;; " (or (buffer-file-name) (buffer-name)) " -- " p
-             " -*- lexical-binding: t -*-" n n)
+     (header ";;; " (file-name-nondirectory (or (buffer-file-name) (buffer-name)))
+             " --- " p " -*- lexical-binding: t -*-" n
+             ";;; Commentary:" n ";;; Code:" n n)
      (provide "(provide '" (file-name-base (or (buffer-file-name) (buffer-name))) ")" n
-              ";;; " (file-name-nondirectory (or (buffer-file-name) (buffer-name))) " ends here" n)
+              ";;; " (file-name-nondirectory (or (buffer-file-name) (buffer-name)))
+              " ends here" n)
      (package (i header) r n n (i provide))
 
    If a custom user element needs an access to named fields, the hook
@@ -391,16 +405,23 @@ number of times:
           (cons 'l (cl-loop for i below (eval count fields) append rest)))))
      (add-to-list 'tempel-user-elements #'tempel-repeat)
 
-   The ‘*’ custom element can be used to expand dynamic tables:
+   The ‘*’ custom element can be used to expand dynamic tables or LaTeX
+matrices:
 
      (table (p (read-number "Rows: ") rows noinsert)
             (p (read-number "Cols: ") cols noinsert)
             "| " (p "  ") (* (1- cols) " | " (p "  ")) " |" n
             "|" (* cols "----|") n
             (* rows "| " (p "  ") (* (1- cols) " | " (p "  ")) " |" n))
+     (matrix (p (read-number "Rows: ") rows noinsert)
+             (p (read-number "Cols: ") cols noinsert)
+             "\\begin{" (p "pmatrix" type) "}" n
+             (* (1- rows) (p " ") (* (1- cols) " & " (p " ")) "\\\\" n)
+             (p " ") (* (1- cols) " & " (p " ")) n
+             "\\end{" type "}")
 
 
-File: docefAebJ.info,  Node: Adding template sources,  Next: Hooking into the Abbrev mechanism,  Prev: Defining custom elements,  Up: Top
+File: docNc54Uo.info,  Node: Adding template sources,  Next: Hooking into the Abbrev mechanism,  Prev: Defining custom elements,  Up: Top
 
 6 Adding template sources
 *************************
@@ -423,7 +444,7 @@ global or local template variables to your user configuration:
      (add-to-list 'tempel-template-sources 'my-local-templates)
 
 
-File: docefAebJ.info,  Node: Hooking into the Abbrev mechanism,  Next: Binding important templates to a key,  Prev: Adding template sources,  Up: Top
+File: docNc54Uo.info,  Node: Hooking into the Abbrev mechanism,  Next: Binding important templates to a key,  Prev: Adding template sources,  Up: Top
 
 7 Hooking into the Abbrev mechanism
 ***********************************
@@ -434,7 +455,7 @@ templates will be available via ‘expand-abbrev’ which is usually bound
 to ‘C-x '’.
 
 
-File: docefAebJ.info,  Node: Binding important templates to a key,  Next: Alternatives,  Prev: Hooking into the Abbrev mechanism,  Up: Top
+File: docNc54Uo.info,  Node: Binding important templates to a key,  Next: Alternatives,  Prev: Hooking into the Abbrev mechanism,  Up: Top
 
 8 Binding important templates to a key
 **************************************
@@ -454,7 +475,7 @@ bind templates via use-package
 (https://github.com/noctuid/general) or similar keybinding packages.
 
 
-File: docefAebJ.info,  Node: Alternatives,  Next: Contributions,  Prev: Binding important templates to a key,  Up: Top
+File: docNc54Uo.info,  Node: Alternatives,  Next: Contributions,  Prev: Binding important templates to a key,  Up: Top
 
 9 Alternatives
 **************
@@ -495,7 +516,7 @@ Schumacher (GitHub link (https://github.com/nschum/tempo-snippets.el)).
      system inspired by Textmate snippets
 
 
-File: docefAebJ.info,  Node: Contributions,  Prev: Alternatives,  Up: Top
+File: docNc54Uo.info,  Node: Contributions,  Prev: Alternatives,  Up: Top
 
 10 Contributions
 ****************
@@ -511,13 +532,13 @@ Node: Top206
 Node: Template expansion1182
 Node: Configuration2936
 Node: Template file format5137
-Node: Template syntax13712
-Node: Defining custom elements15640
-Node: Adding template sources17625
-Node: Hooking into the Abbrev mechanism18683
-Node: Binding important templates to a key19151
-Node: Alternatives20027
-Node: Contributions21892
+Node: Template syntax14344
+Node: Defining custom elements16272
+Node: Adding template sources18674
+Node: Hooking into the Abbrev mechanism19732
+Node: Binding important templates to a key20200
+Node: Alternatives21076
+Node: Contributions22941
 
 End Tag Table
 
