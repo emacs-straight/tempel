@@ -133,6 +133,9 @@ If a file is modified, added or removed, reload the templates."
 (defvar tempel--inhibit-hooks nil
   "Inhibit tempel modification change hooks from running.")
 
+(defvar tempel--ignore-condition nil
+  "Ignore template condition.")
+
 (defvar-local tempel--active nil
   "List of active templates.
 Each template state is a pair, where the car is a list of overlays and
@@ -255,9 +258,13 @@ BEG and END are the boundaries of the modification."
         (save-excursion
           (goto-char (overlay-start ov))
           (let (x)
-            (setq x (or (and (setq x (overlay-get ov 'tempel--form)) (or (eval x (cdr st)) ""))
-                        (and (setq x (overlay-get ov 'tempel--name)) (alist-get x (cdr st)))))
-            (when x (tempel--synchronize-replace (overlay-start ov) (overlay-end ov) ov x)))))
+            (setq x (or (and (setq x (overlay-get ov 'tempel--form))
+                             (or (eval x (cdr st)) ""))
+                        (and (setq x (overlay-get ov 'tempel--name))
+                             (alist-get x (cdr st)))))
+            (when x
+              (tempel--synchronize-replace (overlay-start ov)
+                                           (overlay-end ov) ov x)))))
       ;; Move range overlay
       (move-overlay range (overlay-start range)
                     (max (overlay-end range) (overlay-end ov))))))
@@ -483,10 +490,9 @@ This is meant to be a source in `tempel-template-sources'."
            (timestamps
             (cl-loop
              for f in files collect
-             (cons f (time-convert
-                      (file-attribute-modification-time
-                       (file-attributes (file-truename f)))
-                      'integer)))))
+             (cons f (time-convert (file-attribute-modification-time
+                                    (file-attributes (file-truename f)))
+                                   'integer)))))
       (unless (equal (car tempel--path-templates) timestamps)
         (setq tempel--path-templates (cons timestamps
                                            (mapcan #'tempel--file-read files))))))
@@ -504,7 +510,8 @@ This is meant to be a source in `tempel-template-sources'."
         (derived-mode-p m)
         (when-let ((remap (alist-get m (bound-and-true-p major-mode-remap-alist))))
           (derived-mode-p remap))))
-   (or (not (plist-member plist :when))
+   (or tempel--ignore-condition
+       (not (plist-member plist :when))
        (save-excursion
          (save-restriction
            (save-match-data
@@ -517,8 +524,8 @@ This is meant to be a source in `tempel-template-sources'."
      'tempel-template-sources
      (lambda (fun)
        (cond
-        ((functionp fun) (setq result (append result (funcall fun))))
-        ((boundp fun) (setq result (append result (symbol-value fun))))
+        ((functionp fun) (cl-callf append result (funcall fun)))
+        ((boundp fun) (cl-callf append result (symbol-value fun)))
         (t (error "Template source is not a function or a variable: %S" fun)))
        nil))
     result))
@@ -623,7 +630,7 @@ This is meant to be a source in `tempel-template-sources'."
 (defun tempel--disable (&optional st)
   "Disable template ST, or last template."
   (if st
-      (setq tempel--active (delq st tempel--active))
+      (cl-callf2 delq st tempel--active)
     (setq st (pop tempel--active)))
   (when st
     (mapc #'delete-overlay (car st))
@@ -779,12 +786,6 @@ If called interactively, select a template with `completing-read'."
                (interactive)
                (tempel-insert ',template-or-name)))))))
 
-(defun tempel--abbrev-hook (name template)
-  "Abbreviation expansion hook for TEMPLATE with NAME."
-  (tempel--delete-word name)
-  (tempel--insert template nil)
-  t)
-
 ;;;###autoload
 (define-minor-mode tempel-abbrev-mode
   "Install Tempel templates as abbrevs."
@@ -796,13 +797,18 @@ If called interactively, select a template with `completing-read'."
             (default-value 'abbrev-minor-mode-table-alist))
     (kill-local-variable 'abbrev-minor-mode-table-alist))
   (when tempel-abbrev-mode
-    (let ((table (make-abbrev-table)))
+    (let ((table (make-abbrev-table))
+          (tempel--ignore-condition t))
       (dolist (template (tempel--templates))
         (let* ((name (symbol-name (car template)))
                (hook (make-symbol name)))
-          (fset hook (apply-partially #'tempel--abbrev-hook name (cdr template)))
+          (fset hook (lambda ()
+                       (tempel--delete-word name)
+                       (tempel--insert (cdr template) nil)))
           (put hook 'no-self-insert t)
-          (define-abbrev table name 'Template hook :system t)))
+          (define-abbrev table name 'Template hook
+            :system t :enable-function
+            (lambda () (assq (car template) (tempel--templates))))))
       (setq-local abbrev-minor-mode-table-alist
                   (cons `(tempel-abbrev-mode . ,table)
                         abbrev-minor-mode-table-alist)))))
