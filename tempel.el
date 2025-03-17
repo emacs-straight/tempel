@@ -5,7 +5,7 @@
 ;; Author: Daniel Mendler <mail@daniel-mendler.de>
 ;; Maintainer: Daniel Mendler <mail@daniel-mendler.de>
 ;; Created: 2022
-;; Version: 1.3
+;; Version: 1.4
 ;; Package-Requires: ((emacs "28.1") (compat "30"))
 ;; URL: https://github.com/minad/tempel
 ;; Keywords: abbrev, languages, tools, text
@@ -209,13 +209,13 @@ TEMPLATES is the list of templates."
   "Exit function for completion for template NAME and STATUS.
 TEMPLATES is the list of templates.
 REGION are the current region bounds."
-  (unless (eq status 'exact)
-    (when-let ((sym (intern-soft name))
-               (template (alist-get sym templates)))
-      (tempel--delete-word name)
-      (when tempel-trigger-prefix
-        (tempel--delete-word tempel-trigger-prefix))
-      (tempel--insert template region))))
+  (when-let (((not (eq status 'exact)))
+             (sym (intern-soft name))
+             (template (alist-get sym templates)))
+    (tempel--delete-word name)
+    (when tempel-trigger-prefix
+      (tempel--delete-word tempel-trigger-prefix))
+    (tempel--insert template region)))
 
 (defun tempel--range-modified (ov &rest _)
   "Range overlay OV modified."
@@ -508,7 +508,8 @@ This is meant to be a source in `tempel-template-sources'."
     for m in modes thereis
     (or (eq m #'fundamental-mode)
         (derived-mode-p m)
-        (when-let ((remap (alist-get m (bound-and-true-p major-mode-remap-alist))))
+        (when-let (((eval-when-compile (> emacs-major-version 28)))
+                   (remap (alist-get m (bound-and-true-p major-mode-remap-alist))))
           (derived-mode-p remap))))
    (or tempel--ignore-condition
        (not (plist-member plist :when))
@@ -654,13 +655,6 @@ This is meant to be a source in `tempel-template-sources'."
     (with-current-buffer buf
       (tempel--disable st))))
 
-(defun tempel--interactive (capf)
-  "Complete with CAPF."
-  (let ((completion-at-point-functions (list capf))
-        completion-cycle-threshold)
-    (tempel--save)
-    (or (completion-at-point) (user-error "%s: No completions" capf))))
-
 (defun tempel--prefix-bounds ()
   "Return prefix bounds."
   (if tempel-trigger-prefix
@@ -684,19 +678,22 @@ If you want to select from a list of templates, use
 acts like a Capf, otherwise like an interactive completion
 command."
   (interactive (list t))
-  (if interactive
-      (tempel--interactive #'tempel-expand)
-    (when-let ((templates (tempel--templates))
-               (bounds (tempel--prefix-bounds))
-               (name (buffer-substring-no-properties
-                      (car bounds) (cdr bounds)))
-               (sym (intern-soft name))
-               (template (assq sym templates)))
-      (setq templates (list template))
-      (list (car bounds) (cdr bounds) templates
-            :category 'tempel
-            :exclusive 'no
-            :exit-function (apply-partially #'tempel--exit templates nil)))))
+  (when interactive
+    (tempel--save))
+  (if-let ((templates (tempel--templates))
+           (bounds (tempel--prefix-bounds))
+           (name (buffer-substring-no-properties
+                  (car bounds) (cdr bounds)))
+           (sym (intern-soft name))
+           (template (assq sym templates)))
+      (if interactive
+          (tempel--exit templates nil name 'finished)
+        (setq templates (list template))
+        (list (car bounds) (cdr bounds) templates
+              :category 'tempel
+              :exclusive 'no
+              :exit-function (apply-partially #'tempel--exit templates nil)))
+    (when interactive (user-error "tempel-expand: No matching templates"))))
 
 ;;;###autoload
 (defun tempel-complete (&optional interactive)
@@ -708,10 +705,13 @@ completion UI (e.g. Corfu) for selection.  See also
 Capf, otherwise like an interactive completion command."
   (interactive (list t))
   (if interactive
-      (progn
+      (let ((completion-at-point-functions (list #'tempel-complete))
+            completion-cycle-threshold)
+        (tempel--save)
         (when (and tempel-trigger-prefix (not (tempel--prefix-bounds)))
           (insert tempel-trigger-prefix))
-        (tempel--interactive #'tempel-complete))
+        (unless (completion-at-point)
+          (user-error "tempel-complete: No matching templates")))
     (let ((region (tempel--region)))
       (when-let ((templates (tempel--templates))
                  (bounds (or (and (not region) (tempel--prefix-bounds))

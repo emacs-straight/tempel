@@ -1,2 +1,2 @@
-;; Generated package description from tempel.el  -*- no-byte-compile: t -*-
-(define-package "tempel" "1.3.0.20250101.92736" "Tempo templates/snippets with in-buffer field editing" '((emacs "28.1") (compat "30")) :commit "12a2072ce97d7489296dbb950da946b77d215506" :authors '(("Daniel Mendler" . "mail@daniel-mendler.de")) :maintainer '("Daniel Mendler" . "mail@daniel-mendler.de") :keywords '("abbrev" "languages" "tools" "text") :url "https://github.com/minad/tempel")
+;; Generated package description from tempel.el  -*- mode: lisp-data; no-byte-compile: t -*-
+(define-package "tempel" "1.4.0.20250316.101606" "Tempo templates/snippets with in-buffer field editing" '((emacs "28.1") (compat "30")) :commit "f52a99ebf6ee52a30d435ef1583dc8df3e5f2ca5" :authors '(("Daniel Mendler" . "mail@daniel-mendler.de")) :maintainer '("Daniel Mendler" . "mail@daniel-mendler.de") :keywords '("abbrev" "languages" "tools" "text") :url "https://github.com/minad/tempel")
