@@ -1,4 +1,4 @@
-This is docu6piIE.info, produced by makeinfo version 6.8 from
+This is doc0RumOx.info, produced by makeinfo version 6.8 from
 tempel.texi.
 
 INFO-DIR-SECTION Emacs misc features
@@ -7,7 +7,7 @@ START-INFO-DIR-ENTRY
 END-INFO-DIR-ENTRY
 
 
-File: docu6piIE.info,  Node: Top,  Next: Template expansion,  Up: (dir)
+File: doc0RumOx.info,  Node: Top,  Next: Template expansion,  Up: (dir)
 
 TempEl - Simple templates for Emacs
 ***********************************
@@ -36,7 +36,7 @@ in-buffer completion.
 * Contributions::
 
 
-File: docu6piIE.info,  Node: Template expansion,  Next: Configuration,  Prev: Top,  Up: Top
+File: doc0RumOx.info,  Node: Template expansion,  Next: Configuration,  Prev: Top,  Up: Top
 
 1 Template expansion
 ********************
@@ -69,7 +69,7 @@ you inspect the ‘tempel-map’ and look at the provided key bindings.  You
 can customize the key bindings there.
 
 
-File: docu6piIE.info,  Node: Configuration,  Next: Template file format,  Prev: Template expansion,  Up: Top
+File: doc0RumOx.info,  Node: Configuration,  Next: Template file format,  Prev: Template expansion,  Up: Top
 
 2 Configuration
 ***************
@@ -125,7 +125,7 @@ contributions.
        (global-corfu-mode))
 
 
-File: docu6piIE.info,  Node: Template file format,  Next: Template syntax,  Prev: Configuration,  Up: Top
+File: doc0RumOx.info,  Node: Template file format,  Next: Template syntax,  Prev: Configuration,  Up: Top
 
 3 Template file format
 **********************
@@ -137,16 +137,18 @@ The templates are defined in a Lisp data file configured by
 templates are grouped by major mode with an optional ‘:when’ condition.
 Each template is a list in the concise form of the Emacs Tempo syntax.
 The first element of each list is the name of the template.  I recommend
-to use avoid special letters for the template names, since special
-letters may carry meaning during completion filtering and as such make
-it harder to select the desired template.  Thus the name ‘lett’ is
-better than ‘let*’.  Behind the name, the Tempo syntax elements follow.
+to avoid special letters for the template names, since special letters
+may carry meaning during completion filtering and as such make it harder
+to select the desired template.  Thus the name ‘lett’ is better than
+‘let*’.  Behind the name, the Tempo syntax elements follow.
 
-   In addition, each template may specify a ‘:pre’ and/or ‘:post’ key
-with a FORM that is evaluated before the template is expanded or after
-it is finalized, respectively.  The ‘:post’ form is evaluated in the
-lexical scope of the template, which means that it can access the
-template’s named fields.
+   In addition, _after_ the template elements, each template may specify
+several key/value pairs.  Specifically, templates may specify ‘:pre’
+and/or ‘:post’ keys with a FORM that is evaluated before the template is
+expanded or after it is finalized, respectively.  The ‘:post’ form is
+evaluated in the lexical scope of the template, which means that it can
+access the template’s named fields.  Beyond that, templates may include
+a ‘:doc’ key with a string that is used as documentation.
 
    The following examples are written on a single line, but this is is
 of course not a requirement.  Strings can even contain line breaks,
@@ -156,7 +158,7 @@ which can be useful if you want to write complex templates.
 
      fundamental-mode ;; Available everywhere
 
-     (today (format-time-string "%Y-%m-%d"))
+     (today (format-time-string "%Y-%m-%d") :doc "Insert date")
 
      prog-mode
 
@@ -268,10 +270,10 @@ which can be useful if you want to write complex templates.
 
      (box "┌─" (make-string (length str) ?─) "─┐" n
           "│ " (s str)                       " │" n
-          "└─" (make-string (length str) ?─) "─┘" n)
+          "└─" (make-string (length str) ?─) "─┘" n :doc "UNICODE BOX")
      (abox "+-" (make-string (length str) ?-) "-+" n
            "| " (s str)                       " |" n
-           "+-" (make-string (length str) ?-) "-+" n)
+           "+-" (make-string (length str) ?-) "-+" n :doc "ASCII BOX")
      (cut "--8<---------------cut here---------------start------------->8---" n r n
           "--8<---------------cut here---------------end--------------->8---" n)
      (rot13 (p "plain text" text) n "----" n (rot13 text))
@@ -322,7 +324,7 @@ which can be useful if you want to write complex templates.
      ;; End:
 
 
-File: docu6piIE.info,  Node: Template syntax,  Next: Defining custom elements,  Prev: Template file format,  Up: Top
+File: doc0RumOx.info,  Node: Template syntax,  Next: Defining custom elements,  Prev: Template file format,  Up: Top
 
 4 Template syntax
 *****************
@@ -365,7 +367,7 @@ tempo.el.  We document the important ones here:
    Use caution with templates which execute arbitrary code!
 
 
-File: docu6piIE.info,  Node: Defining custom elements,  Next: Adding template sources,  Prev: Template syntax,  Up: Top
+File: doc0RumOx.info,  Node: Defining custom elements,  Next: Adding template sources,  Prev: Template syntax,  Up: Top
 
 5 Defining custom elements
 **************************
@@ -421,7 +423,7 @@ matrices:
              "\\end{" type "}")
 
 
-File: docu6piIE.info,  Node: Adding template sources,  Next: Hooking into the Abbrev mechanism,  Prev: Defining custom elements,  Up: Top
+File: doc0RumOx.info,  Node: Adding template sources,  Next: Hooking into the Abbrev mechanism,  Prev: Defining custom elements,  Up: Top
 
 6 Adding template sources
 *************************
@@ -444,7 +446,7 @@ global or local template variables to your user configuration:
      (add-to-list 'tempel-template-sources 'my-local-templates)
 
 
-File: docu6piIE.info,  Node: Hooking into the Abbrev mechanism,  Next: Binding important templates to a key,  Prev: Adding template sources,  Up: Top
+File: doc0RumOx.info,  Node: Hooking into the Abbrev mechanism,  Next: Binding important templates to a key,  Prev: Adding template sources,  Up: Top
 
 7 Hooking into the Abbrev mechanism
 ***********************************
@@ -455,7 +457,7 @@ templates will be available via ‘expand-abbrev’ which is usually bound
 to ‘C-x '’.
 
 
-File: docu6piIE.info,  Node: Binding important templates to a key,  Next: Alternatives,  Prev: Hooking into the Abbrev mechanism,  Up: Top
+File: doc0RumOx.info,  Node: Binding important templates to a key,  Next: Alternatives,  Prev: Hooking into the Abbrev mechanism,  Up: Top
 
 8 Binding important templates to a key
 **************************************
@@ -475,7 +477,7 @@ bind templates via use-package
 (https://github.com/noctuid/general) or similar keybinding packages.
 
 
-File: docu6piIE.info,  Node: Alternatives,  Next: Contributions,  Prev: Binding important templates to a key,  Up: Top
+File: doc0RumOx.info,  Node: Alternatives,  Next: Contributions,  Prev: Binding important templates to a key,  Up: Top
 
 9 Alternatives
 **************
@@ -516,7 +518,7 @@ Schumacher (GitHub link (https://github.com/nschum/tempo-snippets.el)).
      system inspired by Textmate snippets
 
 
-File: docu6piIE.info,  Node: Contributions,  Prev: Alternatives,  Up: Top
+File: doc0RumOx.info,  Node: Contributions,  Prev: Alternatives,  Up: Top
 
 10 Contributions
 ****************
@@ -532,13 +534,13 @@ Node: Top206
 Node: Template expansion1182
 Node: Configuration2936
 Node: Template file format5137
-Node: Template syntax14344
-Node: Defining custom elements16272
-Node: Adding template sources18674
-Node: Hooking into the Abbrev mechanism19732
-Node: Binding important templates to a key20200
-Node: Alternatives21076
-Node: Contributions22941
+Node: Template syntax14585
+Node: Defining custom elements16513
+Node: Adding template sources18915
+Node: Hooking into the Abbrev mechanism19973
+Node: Binding important templates to a key20441
+Node: Alternatives21317
+Node: Contributions23182
 
 End Tag Table
 
