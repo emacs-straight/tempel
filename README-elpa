@@ -142,7 +142,8 @@ Table of Contents
   is expanded or after it is finalized, respectively. The `:post' form
   is evaluated in the lexical scope of the template, which means that it
   can access the template's named fields. Beyond that, templates may
-  include a `:doc' key with a string that is used as documentation.
+  include an `:ann' and `:doc' key with strings that are used as
+  annotation and documentation respectively.
 
   The following examples are written on a single line, but this is is of
   course not a requirement. Strings can even contain line breaks, which
@@ -153,7 +154,9 @@ Table of Contents
   │ 
   │ fundamental-mode ;; Available everywhere
   │ 
-  │ (today (format-time-string "%Y-%m-%d") :doc "Insert date")
+  │ (today (format-time-string "%Y-%m-%d")
+  │        :ann "Today's date"
+  │        :doc "Insert today's date")
   │ 
   │ prog-mode
   │ 

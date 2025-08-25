@@ -159,34 +159,30 @@ may be named with `tempel--name' or carry an evaluatable Lisp expression
   "M-<up>" #'tempel-previous
   "M-<down>" #'tempel-next)
 
-(defun tempel--print-template (elts)
-  "Print template ELTS."
+(defun tempel--print-template (template)
+  "Print TEMPLATE."
   (cl-loop
-   for elt in elts until (keywordp elt) concat
+   for elt in template until (keywordp elt) concat
    (pcase elt
      ('nil nil)
-     ((pred stringp) (propertize elt 'face 'completions-annotations))
-     (`(s ,name) (propertize (symbol-name name) 'face 'completions-annotations))
+     ((pred stringp) elt)
+     (`(s ,name) (symbol-name name))
      (`(,(or 'p 'P) ,_ ,name . ,noinsert)
-      (and (not (car noinsert))
-           (propertize (symbol-name name) 'face 'completions-annotations)))
-     ('> #(" " 0 1 (face completions-annotations)))
-     ('n> #("\n " 0 2 (face completions-annotations)))
-     ((or 'n '& '% 'o) #("\n" 0 1 (face completions-annotations)))
+      (and (not (car noinsert)) (symbol-name name)))
+     ('> " ")
+     ('n> "\n ")
+     ((or 'n '& '% 'o) "\n")
      (_ #("_" 0 1 (face shadow))))))
 
-(defun tempel--print-documentation (elts)
-  "Print documentation of template ELTS."
-  (while (and elts (not (keywordp (car elts))))
-    (pop elts))
-  (plist-get elts :doc))
+(defun tempel--template-plist (template)
+  "Get property list from TEMPLATE list."
+  (cl-loop for x on template if (keywordp (car x)) return x))
 
-(defun tempel--insert-doc-buffer-content (elts)
-  "Insert documentation buffer content for template ELTS."
-  (insert (concat (propertize "Preview" 'face '(:underline t)) "\n"))
-  (insert (tempel--print-template elts))
-  (when-let* ((doc (tempel--print-documentation elts)))
-    (insert (concat "\n\n" (propertize "Documentation" 'face '(:underline t)) "\n"))
+(defun tempel--insert-doc (template)
+  "Insert documentation of TEMPLATE."
+  (when-let ((doc (plist-get (tempel--template-plist template) :doc)))
+    (unless (eq ?\n (char-before)) (insert "\n"))
+    (insert (propertize "\n" 'face '(:overline t :height 0.1 :extend t)))
     (insert doc)))
 
 (defun tempel--annotate (templates width sep name)
@@ -194,12 +190,15 @@ may be named with `tempel--name' or carry an evaluatable Lisp expression
 WIDTH and SEP configure the formatting."
   (when-let ((name (intern-soft name))
              (elts (cdr (assoc name templates))))
-    (concat sep (string-trim
-                 (truncate-string-to-width
-                  (replace-regexp-in-string
-                   "[ \t\n\r]+" #(" " 0 1 (face completions-annotations))
-                   (tempel--print-template elts))
-                  width)))))
+    (let ((ann (truncate-string-to-width
+                (string-trim
+                 (replace-regexp-in-string
+                  "[ \t\n\r]+" " "
+                  (or (plist-get (tempel--template-plist elts) :ann)
+                      (tempel--print-template elts))))
+                width)))
+      (add-face-text-property 0 (length ann) 'completions-annotations t ann)
+      (concat sep ann))))
 
 (defun tempel--info-buffer (templates fun name)
   "Create info buffer for template NAME.
@@ -415,9 +414,7 @@ If a field was added, return it."
 
 (defun tempel--insert (template region)
   "Insert TEMPLATE given the current REGION."
-  (let ((plist template))
-    (while (and plist (not (keywordp (car plist))))
-      (pop plist))
+  (let ((plist (tempel--template-plist template)))
     (eval (plist-get plist :pre) 'lexical)
     ;; TODO do we want to have the ability to reactivate snippets?
     (unless (eq buffer-undo-list t)
@@ -434,8 +431,8 @@ If a field was added, return it."
       (let ((st (cons nil nil))
             (ov (point))
             (tempel--inhibit-hooks t))
-        (while (and template (not (keywordp (car template))))
-          (tempel--element st region (pop template)))
+        (cl-loop for x in template until (keywordp x)
+                 do (tempel--element st region x))
         (setq ov (make-overlay ov (point) nil t))
         (push ov (car st))
         (overlay-put ov 'modification-hooks (list #'tempel--range-modified))
@@ -743,12 +740,16 @@ Capf, otherwise like an interactive completion command."
               :company-doc-buffer
               (apply-partially #'tempel--info-buffer templates
                                (lambda (elts)
-                                 (tempel--insert-doc-buffer-content elts)
+                                 (insert (tempel--print-template elts))
+                                 (tempel--insert-doc elts)
                                  (current-buffer)))
               :company-location
               (apply-partially #'tempel--info-buffer templates
                                (lambda (elts)
-                                 (pp elts (current-buffer))
+                                 (pp (cl-loop for x in elts
+                                              until (keywordp x) collect x)
+                                     (current-buffer))
+                                 (tempel--insert-doc elts)
                                  (list (current-buffer))))
               :annotation-function
               (and tempel-complete-annotation
