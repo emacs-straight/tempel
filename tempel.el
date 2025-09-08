@@ -476,18 +476,25 @@ If a field was added, return it."
     (goto-char (point-max))
     (insert "\n)")
     (goto-char (point-min))
-    (let ((data (read (current-buffer))) result)
-      (while data
-        (let (modes plist templates)
-          (while (and (car data) (symbolp (car data)) (not (keywordp (car data))))
-            (push (pop data) modes))
-          (while (keywordp (car data))
-            (push (pop data) plist)
-            (push (pop data) plist))
-          (while (consp (car data))
-            (push (pop data) templates))
-          (push `(,(nreverse modes) ,(nreverse plist) . ,(nreverse templates)) result)))
-      result)))
+    (tempel--file-prepare (read (current-buffer)))))
+
+(defun tempel--file-prepare (data)
+  "Reorganize the template DATA from file.
+DATA must be a list (modes plist templates modes plist templates...).
+See the README, which provides an example for the file format of the
+template.eld file.  The return value is a list of (modes plist . templates)."
+  (let (result)
+    (while data
+      (let (modes plist templates)
+        (while (and (car data) (symbolp (car data)) (not (keywordp (car data))))
+          (push (pop data) modes))
+        (while (keywordp (car data))
+          (push (pop data) plist)
+          (push (pop data) plist))
+        (while (consp (car data))
+          (push (pop data) templates))
+        (push `(,(nreverse modes) ,(nreverse plist) . ,(nreverse templates)) result)))
+    result))
 
 (defun tempel-path-templates ()
   "Return templates defined in `tempel-path'.
@@ -507,10 +514,14 @@ This is meant to be a source in `tempel-template-sources'."
       (unless (equal (car tempel--path-templates) timestamps)
         (setq tempel--path-templates (cons timestamps
                                            (mapcan #'tempel--file-read files))))))
-  (cl-loop
-   for (modes plist . templates) in (cdr tempel--path-templates)
-   if (tempel--condition-p modes plist)
-   append templates))
+  (tempel--filter-templates (cdr tempel--path-templates)))
+
+(defun tempel--filter-templates (templates)
+  "Filter templates from TEMPLATES relevant to the current buffer.
+TEMPLATES must be a list in the form (modes plist . templates)."
+  (cl-loop for (modes plist . mode-templates) in templates
+           if (tempel--condition-p modes plist)
+           append mode-templates))
 
 (defun tempel--condition-p (modes plist)
   "Return non-nil if one of MODES matches and the PLIST condition is satisfied."
