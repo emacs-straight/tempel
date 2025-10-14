@@ -1,4 +1,4 @@
-This is docvHaEMh.info, produced by makeinfo version 6.8 from
+This is docoC4yn1.info, produced by makeinfo version 6.8 from
 tempel.texi.
 
 INFO-DIR-SECTION Emacs misc features
@@ -7,7 +7,7 @@ START-INFO-DIR-ENTRY
 END-INFO-DIR-ENTRY
 
 
-File: docvHaEMh.info,  Node: Top,  Next: Template expansion,  Up: (dir)
+File: docoC4yn1.info,  Node: Top,  Next: Template expansion,  Up: (dir)
 
 TempEl - Simple templates for Emacs
 ***********************************
@@ -36,7 +36,7 @@ in-buffer completion.
 * Contributions::
 
 
-File: docvHaEMh.info,  Node: Template expansion,  Next: Configuration,  Prev: Top,  Up: Top
+File: docoC4yn1.info,  Node: Template expansion,  Next: Configuration,  Prev: Top,  Up: Top
 
 1 Template expansion
 ********************
@@ -69,7 +69,7 @@ you inspect the ‘tempel-map’ and look at the provided key bindings.  You
 can customize the key bindings there.
 
 
-File: docvHaEMh.info,  Node: Configuration,  Next: Template file format,  Prev: Template expansion,  Up: Top
+File: docoC4yn1.info,  Node: Configuration,  Next: Template file format,  Prev: Template expansion,  Up: Top
 
 2 Configuration
 ***************
@@ -125,7 +125,7 @@ contributions.
        (global-corfu-mode))
 
 
-File: docvHaEMh.info,  Node: Template file format,  Next: Template syntax,  Prev: Configuration,  Up: Top
+File: docoC4yn1.info,  Node: Template file format,  Next: Template syntax,  Prev: Configuration,  Up: Top
 
 3 Template file format
 **********************
@@ -327,7 +327,7 @@ which can be useful if you want to write complex templates.
      ;; End:
 
 
-File: docvHaEMh.info,  Node: Template syntax,  Next: Defining custom elements,  Prev: Template file format,  Up: Top
+File: docoC4yn1.info,  Node: Template syntax,  Next: Defining custom elements,  Prev: Template file format,  Up: Top
 
 4 Template syntax
 *****************
@@ -370,7 +370,7 @@ tempo.el.  We document the important ones here:
    Use caution with templates which execute arbitrary code!
 
 
-File: docvHaEMh.info,  Node: Defining custom elements,  Next: Adding template sources,  Prev: Template syntax,  Up: Top
+File: docoC4yn1.info,  Node: Defining custom elements,  Next: Adding template sources,  Prev: Template syntax,  Up: Top
 
 5 Defining custom elements
 **************************
@@ -426,7 +426,7 @@ matrices:
              "\\end{" type "}")
 
 
-File: docvHaEMh.info,  Node: Adding template sources,  Next: Hooking into the Abbrev mechanism,  Prev: Defining custom elements,  Up: Top
+File: docoC4yn1.info,  Node: Adding template sources,  Next: Hooking into the Abbrev mechanism,  Prev: Defining custom elements,  Up: Top
 
 6 Adding template sources
 *************************
@@ -449,7 +449,7 @@ global or local template variables to your user configuration:
      (add-to-list 'tempel-template-sources 'my-local-templates)
 
 
-File: docvHaEMh.info,  Node: Hooking into the Abbrev mechanism,  Next: Binding important templates to a key,  Prev: Adding template sources,  Up: Top
+File: docoC4yn1.info,  Node: Hooking into the Abbrev mechanism,  Next: Binding important templates to a key,  Prev: Adding template sources,  Up: Top
 
 7 Hooking into the Abbrev mechanism
 ***********************************
@@ -460,7 +460,7 @@ templates will be available via ‘expand-abbrev’ which is usually bound
 to ‘C-x '’.
 
 
-File: docvHaEMh.info,  Node: Binding important templates to a key,  Next: Alternatives,  Prev: Hooking into the Abbrev mechanism,  Up: Top
+File: docoC4yn1.info,  Node: Binding important templates to a key,  Next: Alternatives,  Prev: Hooking into the Abbrev mechanism,  Up: Top
 
 8 Binding important templates to a key
 **************************************
@@ -480,7 +480,7 @@ bind templates via use-package
 (https://github.com/noctuid/general) or similar keybinding packages.
 
 
-File: docvHaEMh.info,  Node: Alternatives,  Next: Contributions,  Prev: Binding important templates to a key,  Up: Top
+File: docoC4yn1.info,  Node: Alternatives,  Next: Contributions,  Prev: Binding important templates to a key,  Up: Top
 
 9 Alternatives
 **************
@@ -521,7 +521,7 @@ Schumacher (GitHub link (https://github.com/nschum/tempo-snippets.el)).
      system inspired by Textmate snippets
 
 
-File: docvHaEMh.info,  Node: Contributions,  Prev: Alternatives,  Up: Top
+File: docoC4yn1.info,  Node: Contributions,  Prev: Alternatives,  Up: Top
 
 10 Contributions
 ****************
