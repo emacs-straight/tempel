@@ -63,12 +63,6 @@ The file paths can contain wildcards, e.g.,
 directory."
   :type '(choice string (repeat string)))
 
-(defcustom tempel-trigger-prefix nil
-  "Trigger string prefixes the template names.
-The trigger prefix must be entered first before the template name to
-trigger completion."
-  :type '(choice (const nil) string))
-
 (defcustom tempel-mark
   #(" " 0 1 (display (space :width (1)) face cursor))
   "Field start indicator."
@@ -226,8 +220,6 @@ REGION are the current region bounds."
              (sym (intern-soft name))
              (template (alist-get sym templates)))
     (tempel--delete-word name)
-    (when tempel-trigger-prefix
-      (tempel--delete-word tempel-trigger-prefix))
     (tempel--insert template region)))
 
 (defun tempel--range-modified (ov &rest _)
@@ -509,7 +501,7 @@ This is meant to be a source in `tempel-template-sources'."
             (cl-loop
              for f in files collect
              (cons f (time-convert (file-attribute-modification-time
-                                    (file-attributes (file-truename f)))
+                                    (file-attributes (file-chase-links f)))
                                    'integer)))))
       (unless (equal (car tempel--path-templates) timestamps)
         (setq tempel--path-templates (cons timestamps
@@ -678,15 +670,7 @@ TEMPLATES must be a list in the form (modes plist . templates)."
 
 (defun tempel--prefix-bounds ()
   "Return prefix bounds."
-  (if tempel-trigger-prefix
-      (let ((end (point))
-            (beg (save-excursion
-                   (search-backward tempel-trigger-prefix
-                                    (line-beginning-position) 'noerror))))
-        (when (and beg (save-excursion
-                         (not (re-search-backward "\\s-" beg 'noerror))))
-          (cons (+ beg (length tempel-trigger-prefix)) end)))
-    (bounds-of-thing-at-point 'symbol)))
+  (bounds-of-thing-at-point 'symbol))
 
 ;;;###autoload
 (defun tempel-expand (&optional interactive)
@@ -702,7 +686,7 @@ command."
   (when interactive
     (tempel--save))
   (if-let ((templates (tempel--templates))
-           (bounds (tempel--prefix-bounds))
+           (bounds (bounds-of-thing-at-point 'symbol))
            (name (buffer-substring-no-properties
                   (car bounds) (cdr bounds)))
            (sym (intern-soft name))
@@ -731,22 +715,16 @@ Capf, otherwise like an interactive completion command."
         (tempel--save)
         (unless (completion-at-point)
           (user-error "tempel-complete: No matching templates")))
-    ;; If Tempel completion is invoked manually, use the marked region for
-    ;; template insertion. Insert a trigger prefix if missing. Furthermore
-    ;; accept empty input bounds.
-    (let* ((manually (eq this-command #'tempel-complete))
-           (region (and manually (tempel--region))))
-      (when (and manually tempel-trigger-prefix (not (tempel--prefix-bounds)))
-        (insert tempel-trigger-prefix))
+    ;; Use the marked region for template insertion if triggered manually.
+    (let ((region (and (eq this-command #'tempel-complete) (tempel--region))))
       (when-let ((templates (tempel--templates))
-                 (bounds (or (and (not region) (tempel--prefix-bounds))
-                             (and manually (cons (point) (point))))))
+                 (bounds (or (and (not region) (bounds-of-thing-at-point 'symbol))
+                             (cons (point) (point)))))
         (list (car bounds) (cdr bounds) templates
               :category 'tempel
               :exclusive 'no
               :company-kind (lambda (_) 'snippet)
               :exit-function (apply-partially #'tempel--exit templates region)
-              :company-prefix-length (and tempel-trigger-prefix t)
               :company-doc-buffer
               (apply-partially #'tempel--info-buffer templates
                                (lambda (elts)

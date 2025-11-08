@@ -1,4 +1,4 @@
-This is docoC4yn1.info, produced by makeinfo version 6.8 from
+This is docXwuBmH.info, produced by makeinfo version 6.8 from
 tempel.texi.
 
 INFO-DIR-SECTION Emacs misc features
@@ -7,7 +7,7 @@ START-INFO-DIR-ENTRY
 END-INFO-DIR-ENTRY
 
 
-File: docoC4yn1.info,  Node: Top,  Next: Template expansion,  Up: (dir)
+File: docXwuBmH.info,  Node: Top,  Next: Template expansion,  Up: (dir)
 
 TempEl - Simple templates for Emacs
 ***********************************
@@ -36,7 +36,7 @@ in-buffer completion.
 * Contributions::
 
 
-File: docoC4yn1.info,  Node: Template expansion,  Next: Configuration,  Prev: Top,  Up: Top
+File: docXwuBmH.info,  Node: Template expansion,  Next: Configuration,  Prev: Top,  Up: Top
 
 1 Template expansion
 ********************
@@ -69,7 +69,7 @@ you inspect the ‘tempel-map’ and look at the provided key bindings.  You
 can customize the key bindings there.
 
 
-File: docoC4yn1.info,  Node: Configuration,  Next: Template file format,  Prev: Template expansion,  Up: Top
+File: docXwuBmH.info,  Node: Configuration,  Next: Template file format,  Prev: Template expansion,  Up: Top
 
 2 Configuration
 ***************
@@ -83,10 +83,6 @@ contributions.
 
      ;; Configure Tempel
      (use-package tempel
-       ;; Require trigger prefix before template name when completing.
-       ;; :custom
-       ;; (tempel-trigger-prefix "<")
-
        :bind (("M-+" . tempel-complete) ;; Alternative tempel-expand
               ("M-*" . tempel-insert))
 
@@ -94,16 +90,19 @@ contributions.
 
        ;; Setup completion at point
        (defun tempel-setup-capf ()
-         ;; Add the Tempel Capf to `completion-at-point-functions'.
-         ;; `tempel-expand' only triggers on exact matches. Alternatively use
-         ;; `tempel-complete' if you want to see all matches, but then you
-         ;; should also configure `tempel-trigger-prefix', such that Tempel
-         ;; does not trigger too often when you don't expect it. NOTE: We add
-         ;; `tempel-expand' *before* the main programming mode Capf, such
-         ;; that it will be tried first.
+         ;; Add the Tempel Capf to `completion-at-point-functions'.  `tempel-expand'
+         ;; only triggers on exact matches. We add `tempel-expand' *before* the main
+         ;; programming mode Capf, such that it will be tried first.
          (setq-local completion-at-point-functions
-                     (cons #'tempel-expand
-                           completion-at-point-functions)))
+                     (cons #'tempel-expand completion-at-point-functions))
+
+         ;; Alternatively use `tempel-complete' if you want to see all matches.  Use
+         ;; a trigger prefix character in order to prevent Tempel from triggering
+         ;; unexpectly.
+         ;; (setq-local completion-at-point-functions
+         ;;             (cons (cape-capf-trigger #'tempel-complete ?/)
+         ;;                   completion-at-point-functions))
+       )
 
        (add-hook 'conf-mode-hook 'tempel-setup-capf)
        (add-hook 'prog-mode-hook 'tempel-setup-capf)
@@ -125,7 +124,7 @@ contributions.
        (global-corfu-mode))
 
 
-File: docoC4yn1.info,  Node: Template file format,  Next: Template syntax,  Prev: Configuration,  Up: Top
+File: docXwuBmH.info,  Node: Template file format,  Next: Template syntax,  Prev: Configuration,  Up: Top
 
 3 Template file format
 **********************
@@ -327,7 +326,7 @@ which can be useful if you want to write complex templates.
      ;; End:
 
 
-File: docoC4yn1.info,  Node: Template syntax,  Next: Defining custom elements,  Prev: Template file format,  Up: Top
+File: docXwuBmH.info,  Node: Template syntax,  Next: Defining custom elements,  Prev: Template file format,  Up: Top
 
 4 Template syntax
 *****************
@@ -370,7 +369,7 @@ tempo.el.  We document the important ones here:
    Use caution with templates which execute arbitrary code!
 
 
-File: docoC4yn1.info,  Node: Defining custom elements,  Next: Adding template sources,  Prev: Template syntax,  Up: Top
+File: docXwuBmH.info,  Node: Defining custom elements,  Next: Adding template sources,  Prev: Template syntax,  Up: Top
 
 5 Defining custom elements
 **************************
@@ -426,7 +425,7 @@ matrices:
              "\\end{" type "}")
 
 
-File: docoC4yn1.info,  Node: Adding template sources,  Next: Hooking into the Abbrev mechanism,  Prev: Defining custom elements,  Up: Top
+File: docXwuBmH.info,  Node: Adding template sources,  Next: Hooking into the Abbrev mechanism,  Prev: Defining custom elements,  Up: Top
 
 6 Adding template sources
 *************************
@@ -449,7 +448,7 @@ global or local template variables to your user configuration:
      (add-to-list 'tempel-template-sources 'my-local-templates)
 
 
-File: docoC4yn1.info,  Node: Hooking into the Abbrev mechanism,  Next: Binding important templates to a key,  Prev: Adding template sources,  Up: Top
+File: docXwuBmH.info,  Node: Hooking into the Abbrev mechanism,  Next: Binding important templates to a key,  Prev: Adding template sources,  Up: Top
 
 7 Hooking into the Abbrev mechanism
 ***********************************
@@ -460,7 +459,7 @@ templates will be available via ‘expand-abbrev’ which is usually bound
 to ‘C-x '’.
 
 
-File: docoC4yn1.info,  Node: Binding important templates to a key,  Next: Alternatives,  Prev: Hooking into the Abbrev mechanism,  Up: Top
+File: docXwuBmH.info,  Node: Binding important templates to a key,  Next: Alternatives,  Prev: Hooking into the Abbrev mechanism,  Up: Top
 
 8 Binding important templates to a key
 **************************************
@@ -480,7 +479,7 @@ bind templates via use-package
 (https://github.com/noctuid/general) or similar keybinding packages.
 
 
-File: docoC4yn1.info,  Node: Alternatives,  Next: Contributions,  Prev: Binding important templates to a key,  Up: Top
+File: docXwuBmH.info,  Node: Alternatives,  Next: Contributions,  Prev: Binding important templates to a key,  Up: Top
 
 9 Alternatives
 **************
@@ -521,7 +520,7 @@ Schumacher (GitHub link (https://github.com/nschum/tempo-snippets.el)).
      system inspired by Textmate snippets
 
 
-File: docoC4yn1.info,  Node: Contributions,  Prev: Alternatives,  Up: Top
+File: docXwuBmH.info,  Node: Contributions,  Prev: Alternatives,  Up: Top
 
 10 Contributions
 ****************
@@ -536,14 +535,14 @@ Tag Table:
 Node: Top206
 Node: Template expansion1182
 Node: Configuration2936
-Node: Template file format5137
-Node: Template syntax14681
-Node: Defining custom elements16609
-Node: Adding template sources19011
-Node: Hooking into the Abbrev mechanism20069
-Node: Binding important templates to a key20537
-Node: Alternatives21413
-Node: Contributions23278
+Node: Template file format5118
+Node: Template syntax14662
+Node: Defining custom elements16590
+Node: Adding template sources18992
+Node: Hooking into the Abbrev mechanism20050
+Node: Binding important templates to a key20518
+Node: Alternatives21394
+Node: Contributions23259
 
 End Tag Table
 
