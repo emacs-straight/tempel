@@ -1,4 +1,4 @@
-#+title: TempEl - Simple templates for Emacs
+#+title: Tempel - Simple templates for Emacs
 #+author: Daniel Mendler
 #+language: en
 #+export_file_name: tempel.texi
@@ -14,11 +14,11 @@
 #+html: <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/38/Temple_of_Hephaestus_%28Southwest%29%2C_Athens_-_20070711b.jpg/1920px-Temple_of_Hephaestus_%28Southwest%29%2C_Athens_-_20070711b.jpg" align="right" width="30%">
 
 Tempel is a tiny template package for Emacs, which uses the syntax of the Emacs
-Tempo library. Tempo is an ancient temple of the church of Emacs. It is 30 years
-old, but still in good shape since it successfully resisted change over the
-decades. However it may look a bit dusty here and there. Therefore we present
-Tempel, a new implementation of Tempo with inline expansion and integration with
-recent Emacs facilities. Tempel takes advantage of the standard
+Tempo library. Tempo is an ancient temple of the church of Emacs. It is over 31
+years old, but still in good shape since it successfully resisted change over
+the decades. However it looks a bit dusty here and there. Therefore we present
+Tempel, its worthy successor with inline expansion and integration with recent
+Emacs facilities. Tempel takes advantage of the standard
 =completion-at-point-functions= mechanism which is used by Emacs for in-buffer
 completion.
 
@@ -56,9 +56,8 @@ and look at the provided key bindings. You can customize the key bindings there.
 
 The package is available on GNU ELPA and MELPA and can be installed with
 =package-install=. The following example configuration relies on =use-package=. For
-some ready-made templates check out the package [[https://github.com/Crandel/tempel-collection][tempel-collection]]. The
-collection is not comprehensive yet, but will certainly grow thanks to
-contributions.
+some ready-made templates check out the package [[https://github.com/Crandel/tempel-collection][tempel-collection]]. We appreciate
+if more templates are contributed there.
 
 #+begin_src emacs-lisp
 ;; Configure Tempel
@@ -79,7 +78,8 @@ contributions.
     ;; Alternatively use `tempel-complete' if you want to see all matches.  Use
     ;; a trigger prefix character in order to prevent Tempel from triggering
     ;; unexpectly.
-    ;; (setq-local completion-at-point-functions
+    ;; (setq-local corfu-auto-trigger "/"
+    ;;             completion-at-point-functions
     ;;             (cons (cape-capf-trigger #'tempel-complete ?/)
     ;;                   completion-at-point-functions))
   )
@@ -94,8 +94,7 @@ contributions.
   ;; (global-tempel-abbrev-mode)
 )
 
-;; Optional: Add tempel-collection.
-;; The package is young and doesn't have comprehensive coverage.
+;; Optional: Add tempel-collection if you want ready-made templates.
 (use-package tempel-collection)
 
 ;; Optional: Use the Corfu completion UI
@@ -431,8 +430,15 @@ optionally a map.
 
 Internally ~tempel-key~ uses ~tempel-insert~ to trigger the insertion. Depending on
 the style of your user configuration you may want to write your own helper
-macros, which allow you to conveniently bind templates via [[https://github.com/jwiegley/use-package][use-package]], [[https://github.com/noctuid/general][general]]
-or similar keybinding packages.
+macros, which allow you to conveniently bind templates via [[https://www.gnu.org/software/emacs/manual/html_mono/use-package.html][use-package]] or
+similar keybinding packages.
+
+* LSP integration
+
+See the following projects:
+
+- [[https://github.com/fejfighter/eglot-tempel][eglot-tempel]]
+- [[https://github.com/svaante/lsp-snippet][lsp-snippet]]
 
 * Alternatives
 

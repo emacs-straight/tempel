@@ -1,4 +1,4 @@
-This is docXwuBmH.info, produced by makeinfo version 6.8 from
+This is docF4C9Rs.info, produced by makeinfo version 6.8 from
 tempel.texi.
 
 INFO-DIR-SECTION Emacs misc features
@@ -7,20 +7,19 @@ START-INFO-DIR-ENTRY
 END-INFO-DIR-ENTRY
 
 
-File: docXwuBmH.info,  Node: Top,  Next: Template expansion,  Up: (dir)
+File: docF4C9Rs.info,  Node: Top,  Next: Template expansion,  Up: (dir)
 
-TempEl - Simple templates for Emacs
+Tempel - Simple templates for Emacs
 ***********************************
 
 Tempel is a tiny template package for Emacs, which uses the syntax of
 the Emacs Tempo library.  Tempo is an ancient temple of the church of
-Emacs.  It is 30 years old, but still in good shape since it
-successfully resisted change over the decades.  However it may look a
-bit dusty here and there.  Therefore we present Tempel, a new
-implementation of Tempo with inline expansion and integration with
-recent Emacs facilities.  Tempel takes advantage of the standard
-‘completion-at-point-functions’ mechanism which is used by Emacs for
-in-buffer completion.
+Emacs.  It is over 31 years old, but still in good shape since it
+successfully resisted change over the decades.  However it looks a bit
+dusty here and there.  Therefore we present Tempel, its worthy successor
+with inline expansion and integration with recent Emacs facilities.
+Tempel takes advantage of the standard ‘completion-at-point-functions’
+mechanism which is used by Emacs for in-buffer completion.
 
 * Menu:
 
@@ -32,11 +31,12 @@ in-buffer completion.
 * Adding template sources::
 * Hooking into the Abbrev mechanism::
 * Binding important templates to a key::
+* LSP integration::
 * Alternatives::
 * Contributions::
 
 
-File: docXwuBmH.info,  Node: Template expansion,  Next: Configuration,  Prev: Top,  Up: Top
+File: docF4C9Rs.info,  Node: Template expansion,  Next: Configuration,  Prev: Top,  Up: Top
 
 1 Template expansion
 ********************
@@ -69,7 +69,7 @@ you inspect the ‘tempel-map’ and look at the provided key bindings.  You
 can customize the key bindings there.
 
 
-File: docXwuBmH.info,  Node: Configuration,  Next: Template file format,  Prev: Template expansion,  Up: Top
+File: docF4C9Rs.info,  Node: Configuration,  Next: Template file format,  Prev: Template expansion,  Up: Top
 
 2 Configuration
 ***************
@@ -77,9 +77,8 @@ File: docXwuBmH.info,  Node: Configuration,  Next: Template file format,  Prev: 
 The package is available on GNU ELPA and MELPA and can be installed with
 ‘package-install’.  The following example configuration relies on
 ‘use-package’.  For some ready-made templates check out the package
-tempel-collection (https://github.com/Crandel/tempel-collection).  The
-collection is not comprehensive yet, but will certainly grow thanks to
-contributions.
+tempel-collection (https://github.com/Crandel/tempel-collection).  We
+appreciate if more templates are contributed there.
 
      ;; Configure Tempel
      (use-package tempel
@@ -99,7 +98,8 @@ contributions.
          ;; Alternatively use `tempel-complete' if you want to see all matches.  Use
          ;; a trigger prefix character in order to prevent Tempel from triggering
          ;; unexpectly.
-         ;; (setq-local completion-at-point-functions
+         ;; (setq-local corfu-auto-trigger "/"
+         ;;             completion-at-point-functions
          ;;             (cons (cape-capf-trigger #'tempel-complete ?/)
          ;;                   completion-at-point-functions))
        )
@@ -114,8 +114,7 @@ contributions.
        ;; (global-tempel-abbrev-mode)
      )
 
-     ;; Optional: Add tempel-collection.
-     ;; The package is young and doesn't have comprehensive coverage.
+     ;; Optional: Add tempel-collection if you want ready-made templates.
      (use-package tempel-collection)
 
      ;; Optional: Use the Corfu completion UI
@@ -124,7 +123,7 @@ contributions.
        (global-corfu-mode))
 
 
-File: docXwuBmH.info,  Node: Template file format,  Next: Template syntax,  Prev: Configuration,  Up: Top
+File: docF4C9Rs.info,  Node: Template file format,  Next: Template syntax,  Prev: Configuration,  Up: Top
 
 3 Template file format
 **********************
@@ -326,7 +325,7 @@ which can be useful if you want to write complex templates.
      ;; End:
 
 
-File: docXwuBmH.info,  Node: Template syntax,  Next: Defining custom elements,  Prev: Template file format,  Up: Top
+File: docF4C9Rs.info,  Node: Template syntax,  Next: Defining custom elements,  Prev: Template file format,  Up: Top
 
 4 Template syntax
 *****************
@@ -369,7 +368,7 @@ tempo.el.  We document the important ones here:
    Use caution with templates which execute arbitrary code!
 
 
-File: docXwuBmH.info,  Node: Defining custom elements,  Next: Adding template sources,  Prev: Template syntax,  Up: Top
+File: docF4C9Rs.info,  Node: Defining custom elements,  Next: Adding template sources,  Prev: Template syntax,  Up: Top
 
 5 Defining custom elements
 **************************
@@ -425,7 +424,7 @@ matrices:
              "\\end{" type "}")
 
 
-File: docXwuBmH.info,  Node: Adding template sources,  Next: Hooking into the Abbrev mechanism,  Prev: Defining custom elements,  Up: Top
+File: docF4C9Rs.info,  Node: Adding template sources,  Next: Hooking into the Abbrev mechanism,  Prev: Defining custom elements,  Up: Top
 
 6 Adding template sources
 *************************
@@ -448,7 +447,7 @@ global or local template variables to your user configuration:
      (add-to-list 'tempel-template-sources 'my-local-templates)
 
 
-File: docXwuBmH.info,  Node: Hooking into the Abbrev mechanism,  Next: Binding important templates to a key,  Prev: Adding template sources,  Up: Top
+File: docF4C9Rs.info,  Node: Hooking into the Abbrev mechanism,  Next: Binding important templates to a key,  Prev: Adding template sources,  Up: Top
 
 7 Hooking into the Abbrev mechanism
 ***********************************
@@ -459,7 +458,7 @@ templates will be available via ‘expand-abbrev’ which is usually bound
 to ‘C-x '’.
 
 
-File: docXwuBmH.info,  Node: Binding important templates to a key,  Next: Alternatives,  Prev: Hooking into the Abbrev mechanism,  Up: Top
+File: docF4C9Rs.info,  Node: Binding important templates to a key,  Next: LSP integration,  Prev: Hooking into the Abbrev mechanism,  Up: Top
 
 8 Binding important templates to a key
 **************************************
@@ -475,14 +474,25 @@ and optionally a map.
 insertion.  Depending on the style of your user configuration you may
 want to write your own helper macros, which allow you to conveniently
 bind templates via use-package
-(https://github.com/jwiegley/use-package), general
-(https://github.com/noctuid/general) or similar keybinding packages.
+(https://www.gnu.org/software/emacs/manual/html_mono/use-package.html)
+or similar keybinding packages.
 
 
-File: docXwuBmH.info,  Node: Alternatives,  Next: Contributions,  Prev: Binding important templates to a key,  Up: Top
+File: docF4C9Rs.info,  Node: LSP integration,  Next: Alternatives,  Prev: Binding important templates to a key,  Up: Top
 
-9 Alternatives
-**************
+9 LSP integration
+*****************
+
+See the following projects:
+
+   • eglot-tempel (https://github.com/fejfighter/eglot-tempel)
+   • lsp-snippet (https://github.com/svaante/lsp-snippet)
+
+
+File: docF4C9Rs.info,  Node: Alternatives,  Next: Contributions,  Prev: LSP integration,  Up: Top
+
+10 Alternatives
+***************
 
 There are plenty of alternative packages which provide abbreviation or
 snippet expansion.  Try Tempel if you like small and simple packages.
@@ -520,9 +530,9 @@ Schumacher (GitHub link (https://github.com/nschum/tempo-snippets.el)).
      system inspired by Textmate snippets
 
 
-File: docXwuBmH.info,  Node: Contributions,  Prev: Alternatives,  Up: Top
+File: docF4C9Rs.info,  Node: Contributions,  Prev: Alternatives,  Up: Top
 
-10 Contributions
+11 Contributions
 ****************
 
 Since this package is part of GNU ELPA
@@ -533,16 +543,17 @@ copyright assignment to the FSF.
 
 Tag Table:
 Node: Top206
-Node: Template expansion1182
-Node: Configuration2936
-Node: Template file format5118
-Node: Template syntax14662
-Node: Defining custom elements16590
-Node: Adding template sources18992
-Node: Hooking into the Abbrev mechanism20050
-Node: Binding important templates to a key20518
-Node: Alternatives21394
-Node: Contributions23259
+Node: Template expansion1194
+Node: Configuration2948
+Node: Template file format5105
+Node: Template syntax14649
+Node: Defining custom elements16577
+Node: Adding template sources18979
+Node: Hooking into the Abbrev mechanism20037
+Node: Binding important templates to a key20505
+Node: LSP integration21367
+Node: Alternatives21683
+Node: Contributions23529
 
 End Tag Table
 
