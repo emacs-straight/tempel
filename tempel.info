@@ -1,4 +1,4 @@
-This is docF4C9Rs.info, produced by makeinfo version 6.8 from
+This is docEJ08DP.info, produced by makeinfo version 6.8 from
 tempel.texi.
 
 INFO-DIR-SECTION Emacs misc features
@@ -7,7 +7,7 @@ START-INFO-DIR-ENTRY
 END-INFO-DIR-ENTRY
 
 
-File: docF4C9Rs.info,  Node: Top,  Next: Template expansion,  Up: (dir)
+File: docEJ08DP.info,  Node: Top,  Next: Template expansion,  Up: (dir)
 
 Tempel - Simple templates for Emacs
 ***********************************
@@ -36,7 +36,7 @@ mechanism which is used by Emacs for in-buffer completion.
 * Contributions::
 
 
-File: docF4C9Rs.info,  Node: Template expansion,  Next: Configuration,  Prev: Top,  Up: Top
+File: docEJ08DP.info,  Node: Template expansion,  Next: Configuration,  Prev: Top,  Up: Top
 
 1 Template expansion
 ********************
@@ -69,7 +69,7 @@ you inspect the ‘tempel-map’ and look at the provided key bindings.  You
 can customize the key bindings there.
 
 
-File: docF4C9Rs.info,  Node: Configuration,  Next: Template file format,  Prev: Template expansion,  Up: Top
+File: docEJ08DP.info,  Node: Configuration,  Next: Template file format,  Prev: Template expansion,  Up: Top
 
 2 Configuration
 ***************
@@ -123,7 +123,7 @@ appreciate if more templates are contributed there.
        (global-corfu-mode))
 
 
-File: docF4C9Rs.info,  Node: Template file format,  Next: Template syntax,  Prev: Configuration,  Up: Top
+File: docEJ08DP.info,  Node: Template file format,  Next: Template syntax,  Prev: Configuration,  Up: Top
 
 3 Template file format
 **********************
@@ -325,7 +325,7 @@ which can be useful if you want to write complex templates.
      ;; End:
 
 
-File: docF4C9Rs.info,  Node: Template syntax,  Next: Defining custom elements,  Prev: Template file format,  Up: Top
+File: docEJ08DP.info,  Node: Template syntax,  Next: Defining custom elements,  Prev: Template file format,  Up: Top
 
 4 Template syntax
 *****************
@@ -368,7 +368,7 @@ tempo.el.  We document the important ones here:
    Use caution with templates which execute arbitrary code!
 
 
-File: docF4C9Rs.info,  Node: Defining custom elements,  Next: Adding template sources,  Prev: Template syntax,  Up: Top
+File: docEJ08DP.info,  Node: Defining custom elements,  Next: Adding template sources,  Prev: Template syntax,  Up: Top
 
 5 Defining custom elements
 **************************
@@ -424,7 +424,7 @@ matrices:
              "\\end{" type "}")
 
 
-File: docF4C9Rs.info,  Node: Adding template sources,  Next: Hooking into the Abbrev mechanism,  Prev: Defining custom elements,  Up: Top
+File: docEJ08DP.info,  Node: Adding template sources,  Next: Hooking into the Abbrev mechanism,  Prev: Defining custom elements,  Up: Top
 
 6 Adding template sources
 *************************
@@ -447,7 +447,7 @@ global or local template variables to your user configuration:
      (add-to-list 'tempel-template-sources 'my-local-templates)
 
 
-File: docF4C9Rs.info,  Node: Hooking into the Abbrev mechanism,  Next: Binding important templates to a key,  Prev: Adding template sources,  Up: Top
+File: docEJ08DP.info,  Node: Hooking into the Abbrev mechanism,  Next: Binding important templates to a key,  Prev: Adding template sources,  Up: Top
 
 7 Hooking into the Abbrev mechanism
 ***********************************
@@ -458,7 +458,7 @@ templates will be available via ‘expand-abbrev’ which is usually bound
 to ‘C-x '’.
 
 
-File: docF4C9Rs.info,  Node: Binding important templates to a key,  Next: LSP integration,  Prev: Hooking into the Abbrev mechanism,  Up: Top
+File: docEJ08DP.info,  Node: Binding important templates to a key,  Next: LSP integration,  Prev: Hooking into the Abbrev mechanism,  Up: Top
 
 8 Binding important templates to a key
 **************************************
@@ -478,7 +478,7 @@ bind templates via use-package
 or similar keybinding packages.
 
 
-File: docF4C9Rs.info,  Node: LSP integration,  Next: Alternatives,  Prev: Binding important templates to a key,  Up: Top
+File: docEJ08DP.info,  Node: LSP integration,  Next: Alternatives,  Prev: Binding important templates to a key,  Up: Top
 
 9 LSP integration
 *****************
@@ -489,7 +489,7 @@ See the following projects:
    • lsp-snippet (https://github.com/svaante/lsp-snippet)
 
 
-File: docF4C9Rs.info,  Node: Alternatives,  Next: Contributions,  Prev: LSP integration,  Up: Top
+File: docEJ08DP.info,  Node: Alternatives,  Next: Contributions,  Prev: LSP integration,  Up: Top
 
 10 Alternatives
 ***************
@@ -530,7 +530,7 @@ Schumacher (GitHub link (https://github.com/nschum/tempo-snippets.el)).
      system inspired by Textmate snippets
 
 
-File: docF4C9Rs.info,  Node: Contributions,  Prev: Alternatives,  Up: Top
+File: docEJ08DP.info,  Node: Contributions,  Prev: Alternatives,  Up: Top
 
 11 Contributions
 ****************
