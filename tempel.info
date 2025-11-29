@@ -1,4 +1,4 @@
-This is docEJ08DP.info, produced by makeinfo version 6.8 from
+This is docPrFqyH.info, produced by makeinfo version 6.8 from
 tempel.texi.
 
 INFO-DIR-SECTION Emacs misc features
@@ -7,7 +7,7 @@ START-INFO-DIR-ENTRY
 END-INFO-DIR-ENTRY
 
 
-File: docEJ08DP.info,  Node: Top,  Next: Template expansion,  Up: (dir)
+File: docPrFqyH.info,  Node: Top,  Next: Template expansion,  Up: (dir)
 
 Tempel - Simple templates for Emacs
 ***********************************
@@ -36,7 +36,7 @@ mechanism which is used by Emacs for in-buffer completion.
 * Contributions::
 
 
-File: docEJ08DP.info,  Node: Template expansion,  Next: Configuration,  Prev: Top,  Up: Top
+File: docPrFqyH.info,  Node: Template expansion,  Next: Configuration,  Prev: Top,  Up: Top
 
 1 Template expansion
 ********************
@@ -61,15 +61,16 @@ Tempel comes with three commands for template expansion:
 to give my Corfu (https://github.com/minad/corfu) completion at point
 popup UI a try.  After inserting the template you can move between the
 visible template fields with the keys ‘M-{’, ‘M-}’ or ‘C-up/down’ which
-are normally bound to ‘forward/backward-paragraph’.  Tempel temporarily
-remaps these commands to ‘tempel-next/previous’.  As soon as you move
-before (behind) the first (last) field, the fields are finalized.  The
-key bindings are defined in the ‘tempel-map’ keymap.  I recommend that
-you inspect the ‘tempel-map’ and look at the provided key bindings.  You
-can customize the key bindings there.
+are normally bound to ‘forward-paragraph’ and ‘backward-paragraph’.
+Tempel temporarily remaps these commands to ‘tempel-next’ and
+‘tempel-previous’.  If ‘tempel-done-on-next’ is non-nil, as soon as you
+move before (behind) the first (last) field, the template is finished.
+The key bindings are defined in the ‘tempel-map’ keymap.  I recommend
+that you inspect the ‘tempel-map’ and look at the provided key bindings.
+You can customize the key bindings there.
 
 
-File: docEJ08DP.info,  Node: Configuration,  Next: Template file format,  Prev: Template expansion,  Up: Top
+File: docPrFqyH.info,  Node: Configuration,  Next: Template file format,  Prev: Template expansion,  Up: Top
 
 2 Configuration
 ***************
@@ -123,7 +124,7 @@ appreciate if more templates are contributed there.
        (global-corfu-mode))
 
 
-File: docEJ08DP.info,  Node: Template file format,  Next: Template syntax,  Prev: Configuration,  Up: Top
+File: docPrFqyH.info,  Node: Template file format,  Next: Template syntax,  Prev: Configuration,  Up: Top
 
 3 Template file format
 **********************
@@ -143,7 +144,7 @@ to select the desired template.  Thus the name ‘lett’ is better than
    In addition, _after_ the template elements, each template may specify
 several key/value pairs.  Specifically, templates may specify ‘:pre’
 and/or ‘:post’ keys with a FORM that is evaluated before the template is
-expanded or after it is finalized, respectively.  The ‘:post’ form is
+expanded or after it is finished, respectively.  The ‘:post’ form is
 evaluated in the lexical scope of the template, which means that it can
 access the template’s named fields.  Beyond that, templates may include
 an ‘:ann’ and ‘:doc’ key with strings that are used as annotation and
@@ -325,7 +326,7 @@ which can be useful if you want to write complex templates.
      ;; End:
 
 
-File: docEJ08DP.info,  Node: Template syntax,  Next: Defining custom elements,  Prev: Template file format,  Up: Top
+File: docPrFqyH.info,  Node: Template syntax,  Next: Defining custom elements,  Prev: Template file format,  Up: Top
 
 4 Template syntax
 *****************
@@ -338,8 +339,10 @@ tempo.el.  We document the important ones here:
    • ‘p’ Inserts an unnamed placeholder field.
    • ‘n’ Inserts a newline.
    • ‘>’ Indents with ‘indent-according-to-mode’.
-   • ‘r’ Inserts the current region.  If no region is active, quits the
-     containing template when jumped to.
+   • ‘r’ Inserts the currently active region.  If no region is active, a
+     placeholder field is inserted.  If ‘tempel-done-on-region’ is
+     non-nil, the template is finished when you jump to the field (see
+     also ‘q’).
    • ‘r>’ Acts like ‘r’, but indent region.
    • ‘n>’ Inserts a newline and indents.
    • ‘&’ Insert newline unless there is only whitespace between line
@@ -363,12 +366,13 @@ tempo.el.  We document the important ones here:
      is evaluated.
    • ‘(FORM ...)’ Other Lisp forms are evaluated.  Named fields are
      lexically bound.
-   • ‘q’ Quits the containing template when jumped to.
+   • ‘q’ Like ‘p’, but the template is finished if the user jumps to the
+     field (see also ‘r’).
 
    Use caution with templates which execute arbitrary code!
 
 
-File: docEJ08DP.info,  Node: Defining custom elements,  Next: Adding template sources,  Prev: Template syntax,  Up: Top
+File: docPrFqyH.info,  Node: Defining custom elements,  Next: Adding template sources,  Prev: Template syntax,  Up: Top
 
 5 Defining custom elements
 **************************
@@ -424,7 +428,7 @@ matrices:
              "\\end{" type "}")
 
 
-File: docEJ08DP.info,  Node: Adding template sources,  Next: Hooking into the Abbrev mechanism,  Prev: Defining custom elements,  Up: Top
+File: docPrFqyH.info,  Node: Adding template sources,  Next: Hooking into the Abbrev mechanism,  Prev: Defining custom elements,  Up: Top
 
 6 Adding template sources
 *************************
@@ -447,7 +451,7 @@ global or local template variables to your user configuration:
      (add-to-list 'tempel-template-sources 'my-local-templates)
 
 
-File: docEJ08DP.info,  Node: Hooking into the Abbrev mechanism,  Next: Binding important templates to a key,  Prev: Adding template sources,  Up: Top
+File: docPrFqyH.info,  Node: Hooking into the Abbrev mechanism,  Next: Binding important templates to a key,  Prev: Adding template sources,  Up: Top
 
 7 Hooking into the Abbrev mechanism
 ***********************************
@@ -458,7 +462,7 @@ templates will be available via ‘expand-abbrev’ which is usually bound
 to ‘C-x '’.
 
 
-File: docEJ08DP.info,  Node: Binding important templates to a key,  Next: LSP integration,  Prev: Hooking into the Abbrev mechanism,  Up: Top
+File: docPrFqyH.info,  Node: Binding important templates to a key,  Next: LSP integration,  Prev: Hooking into the Abbrev mechanism,  Up: Top
 
 8 Binding important templates to a key
 **************************************
@@ -478,7 +482,7 @@ bind templates via use-package
 or similar keybinding packages.
 
 
-File: docEJ08DP.info,  Node: LSP integration,  Next: Alternatives,  Prev: Binding important templates to a key,  Up: Top
+File: docPrFqyH.info,  Node: LSP integration,  Next: Alternatives,  Prev: Binding important templates to a key,  Up: Top
 
 9 LSP integration
 *****************
@@ -489,7 +493,7 @@ See the following projects:
    • lsp-snippet (https://github.com/svaante/lsp-snippet)
 
 
-File: docEJ08DP.info,  Node: Alternatives,  Next: Contributions,  Prev: LSP integration,  Up: Top
+File: docPrFqyH.info,  Node: Alternatives,  Next: Contributions,  Prev: LSP integration,  Up: Top
 
 10 Alternatives
 ***************
@@ -530,7 +534,7 @@ Schumacher (GitHub link (https://github.com/nschum/tempo-snippets.el)).
      system inspired by Textmate snippets
 
 
-File: docEJ08DP.info,  Node: Contributions,  Prev: Alternatives,  Up: Top
+File: docPrFqyH.info,  Node: Contributions,  Prev: Alternatives,  Up: Top
 
 11 Contributions
 ****************
@@ -544,16 +548,16 @@ copyright assignment to the FSF.
 Tag Table:
 Node: Top206
 Node: Template expansion1194
-Node: Configuration2948
-Node: Template file format5105
-Node: Template syntax14649
-Node: Defining custom elements16577
-Node: Adding template sources18979
-Node: Hooking into the Abbrev mechanism20037
-Node: Binding important templates to a key20505
-Node: LSP integration21367
-Node: Alternatives21683
-Node: Contributions23529
+Node: Configuration3023
+Node: Template file format5180
+Node: Template syntax14723
+Node: Defining custom elements16826
+Node: Adding template sources19228
+Node: Hooking into the Abbrev mechanism20286
+Node: Binding important templates to a key20754
+Node: LSP integration21616
+Node: Alternatives21932
+Node: Contributions23778
 
 End Tag Table
 
