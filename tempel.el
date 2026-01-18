@@ -312,10 +312,11 @@ If OV is alive, move it."
                  (and (= (overlay-start ov) (overlay-end ov))
                       tempel-mark))))
 
-(defun tempel--field (&optional name init)
+(defun tempel--field (&optional name init default)
   "Add template field.
 NAME is the optional field name.
 INIT is the optional initial input.
+DEFAULT specifies if initial input is a default value.
 Return the added field."
   (let ((st (car tempel--active))
         (ov (make-overlay (point) (point)))
@@ -334,7 +335,7 @@ Return the added field."
     (overlay-put ov 'insert-in-front-hooks hooks)
     (overlay-put ov 'insert-behind-hooks hooks)
     (overlay-put ov 'face 'tempel-field)
-    (when (and init (get-text-property 0 'tempel--default init))
+    (when (and init default)
       (overlay-put ov 'face 'tempel-default)
       (overlay-put ov 'tempel--default
                    (if (string-suffix-p ": " init) 'end 'start)))
@@ -411,15 +412,15 @@ Return the added field."
 If NOINSERT is non-nil do not insert a field, only bind the value to NAME.
 PROMPT is the optional prompt/default value.
 If a field was added, return it."
-  (setq prompt
-        (cond
-         ((and (stringp prompt) noinsert) (read-string prompt))
-         ((stringp prompt) (propertize prompt 'tempel--default t))
-         ;; TEMPEL EXTENSION: Evaluate prompt
-         (t (eval prompt (cdar tempel--active)))))
-  (if noinsert
-      (progn (setf (alist-get name (cdar tempel--active)) prompt) nil)
-    (tempel--field name prompt)))
+  (let ((init
+         (cond
+          ((and (stringp prompt) noinsert) (read-string prompt))
+          ((stringp prompt) prompt)
+          ;; TEMPEL EXTENSION: Evaluate prompt
+          (t (eval prompt (cdar tempel--active))))))
+    (if noinsert
+        (progn (setf (alist-get name (cdar tempel--active)) init) nil)
+      (tempel--field name init (stringp prompt)))))
 
 (defun tempel--insert (template region)
   "Insert TEMPLATE given the current REGION."
@@ -501,7 +502,8 @@ template.eld file.  The return value is a list of (modes plist . templates)."
           (push (pop data) plist))
         (while (consp (car data))
           (push (pop data) templates))
-        (push `( ,(nreverse modes) ,(nreverse plist) . ,(nreverse templates)) result)))
+        (push `( ,(nreverse modes) ,(nreverse plist) . ,(nreverse templates))
+              result)))
     result))
 
 (defun tempel-path-templates ()
@@ -573,8 +575,10 @@ TEMPLATES must be a list in the form (modes plist . templates)."
     (dolist (st tempel--active next)
       (dolist (ov (car st))
         (unless (overlay-get ov 'tempel--form)
-          (setq stop (if (or (< dir 0) (eq 'start (overlay-get ov 'tempel--default)))
-                         (overlay-start ov) (overlay-end ov)))
+          (setq stop (if (or (< dir 0)
+                             (eq 'start (overlay-get ov 'tempel--default)))
+                         (overlay-start ov)
+                       (overlay-end ov)))
           (cond
            ((and (> dir 0) (> stop pt))
             (setq next (min (or next (point-max)) stop)))
@@ -707,9 +711,17 @@ If prefix argument ALL is given, abort all templates."
     (with-current-buffer buf
       (tempel--disable st))))
 
-(defun tempel--prefix-bounds ()
-  "Return prefix bounds."
-  (bounds-of-thing-at-point 'symbol))
+(defun tempel--prefix-bounds (templates)
+  "Return prefix bounds given TEMPLATES list."
+  (let ((beg (save-excursion (skip-chars-backward "^[:space:]") (point)))
+        (end (point)))
+    (if (and (/= beg end)
+             ;; Check if prefix matches a template name.
+             (try-completion (buffer-substring-no-properties beg end)
+                             templates))
+        (cons beg end)
+      ;; Fallback to `bounds-of-thing-at-point'.
+      (bounds-of-thing-at-point 'symbol))))
 
 ;;;###autoload
 (defun tempel-expand (&optional interactive)
@@ -725,7 +737,7 @@ command."
   (when interactive
     (tempel--save))
   (if-let* ((templates (tempel--templates))
-            (bounds (bounds-of-thing-at-point 'symbol))
+            (bounds (tempel--prefix-bounds templates))
             (name (buffer-substring-no-properties
                    (car bounds) (cdr bounds)))
             (sym (intern-soft name))
@@ -757,7 +769,8 @@ Capf, otherwise like an interactive completion command."
     ;; Use the marked region for template insertion if triggered manually.
     (let ((region (and (eq this-command #'tempel-complete) (tempel--region))))
       (when-let* ((templates (tempel--templates))
-                  (bounds (or (and (not region) (bounds-of-thing-at-point 'symbol))
+                  (bounds (or (and (not region)
+                                   (tempel--prefix-bounds templates))
                               (cons (point) (point)))))
         (list (car bounds) (cdr bounds) templates
               :category 'tempel
@@ -779,9 +792,9 @@ Capf, otherwise like an interactive completion command."
                                  (tempel--insert-doc elts)
                                  (list (current-buffer))))
               :annotation-function
-              (and tempel-complete-annotation
-                   (apply-partially #'tempel--annotate
-                                    templates tempel-complete-annotation " ")))))))
+              (when tempel-complete-annotation
+                (apply-partially #'tempel--annotate
+                                 templates tempel-complete-annotation " ")))))))
 
 ;;;###autoload
 (defun tempel-insert (template-or-name)
@@ -797,6 +810,7 @@ If called interactively, select a template with `completing-read'."
                (intern-soft
                 (completing-read
                  "Template: "
+                 ;; TODO: Use `completion-table-with-metadata' via Compat 31
                  (lambda (str pred action)
                    (if (eq action 'metadata)
                        `(metadata

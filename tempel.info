@@ -363,7 +363,8 @@ tempo.el.  We document the important ones here:
    Furthermore Tempel supports syntax extensions:
 
    • ‘(p FORM <NAME> <NOINSERT>)’ Like ‘p’ described above, but ‘FORM’
-     is evaluated.
+     is evaluated.  You can for example select from various values via
+     ‘completing-read’.
    • ‘(FORM ...)’ Other Lisp forms are evaluated.  Named fields are
      lexically bound.
    • ‘q’ Like ‘p’, but the template is finished if the user jumps to the
@@ -551,13 +552,13 @@ Node: Template expansion1190
 Node: Configuration3016
 Node: Template file format5170
 Node: Template syntax14710
-Node: Defining custom elements16810
-Node: Adding template sources19212
-Node: Hooking into the Abbrev mechanism20267
-Node: Binding important templates to a key20732
-Node: LSP integration21591
-Node: Alternatives21904
-Node: Contributions23747
+Node: Defining custom elements16890
+Node: Adding template sources19292
+Node: Hooking into the Abbrev mechanism20347
+Node: Binding important templates to a key20812
+Node: LSP integration21671
+Node: Alternatives21984
+Node: Contributions23827
 
 End Tag Table
 
