@@ -164,9 +164,9 @@ may be named with `tempel--name' or carry an evaluatable Lisp expression
 (defun tempel--print-template (template)
   "Print TEMPLATE."
   (cl-loop
-   for elt in template until (keywordp elt) concat
+   for elt in template until (keywordp elt) collect
    (pcase elt
-     ('nil nil)
+     ('nil "")
      ((pred stringp) elt)
      (`(s ,name) (symbol-name name))
      (`(,(or 'p 'P) ,_ ,name . ,noinsert)
@@ -174,7 +174,8 @@ may be named with `tempel--name' or carry an evaluatable Lisp expression
      ('> " ")
      ('n> "\n ")
      ((or 'n '& '% 'o) "\n")
-     (_ #("_" 0 1 (face shadow))))))
+     (_ #("_" 0 1 (face shadow))))
+   into result finally return (apply #'concat result)))
 
 (defun tempel--template-plist (template)
   "Get property list from TEMPLATE list."
@@ -191,13 +192,13 @@ may be named with `tempel--name' or carry an evaluatable Lisp expression
   "Annotate template NAME given the list of TEMPLATES.
 WIDTH and SEP configure the formatting."
   (when-let* ((name (intern-soft name))
-              (elts (cdr (assoc name templates))))
+              (template (alist-get name templates)))
     (let ((ann (truncate-string-to-width
                 (string-trim
                  (replace-regexp-in-string
                   "[ \t\n\r]+" " "
-                  (or (plist-get (tempel--template-plist elts) :ann)
-                      (tempel--print-template elts))))
+                  (or (plist-get (tempel--template-plist template) :ann)
+                      (tempel--print-template template))))
                 width)))
       (add-face-text-property 0 (length ann) 'completions-annotations t ann)
       (concat sep ann))))
@@ -207,12 +208,12 @@ WIDTH and SEP configure the formatting."
 FUN inserts the info into the buffer.
 TEMPLATES is the list of templates."
   (when-let* ((name (intern-soft name))
-              (elts (cdr (assoc name templates))))
+              (template (alist-get name templates)))
     (with-current-buffer (get-buffer-create " *tempel-info*")
       (setq buffer-read-only t)
       (let ((inhibit-read-only t))
         (erase-buffer)
-        (funcall fun elts)))))
+        (funcall fun template)))))
 
 (defun tempel--delete-word (word)
   "Delete WORD before point."
@@ -502,15 +503,16 @@ template.eld file.  The return value is a list of (modes plist . templates)."
           (push (pop data) plist))
         (while (consp (car data))
           (push (pop data) templates))
-        (push `( ,(nreverse modes) ,(nreverse plist) . ,(nreverse templates))
+        (push `( ,(nreverse modes) ,(plist-get (nreverse plist) :when)
+                 . ,(nreverse templates))
               result)))
     result))
 
 (defun tempel-path-templates ()
   "Return templates defined in `tempel-path'.
-Additionally, save any files in `tempel-template-sources' that have been
-modified since the last time this function was called.
-This is meant to be a source in `tempel-template-sources'."
+Additionally, save any files in `tempel-path' that have been modified
+since the last time this function was called.  This function can be used
+as source in `tempel-template-sources'."
   (when (or (not tempel--path-templates) tempel-auto-reload)
     (let* ((files
             (cl-loop for path in (ensure-list tempel-path)
@@ -529,12 +531,12 @@ This is meant to be a source in `tempel-template-sources'."
 (defun tempel--filter-templates (templates)
   "Filter templates from TEMPLATES relevant to the current buffer.
 TEMPLATES must be a list in the form (modes plist . templates)."
-  (cl-loop for (modes plist . mode-templates) in templates
-           if (tempel--condition-p modes plist)
+  (cl-loop for (modes cond . mode-templates) in templates
+           if (tempel--condition-p modes cond)
            append mode-templates))
 
-(defun tempel--condition-p (modes plist)
-  "Return non-nil if one of MODES matches and the PLIST condition is satisfied."
+(defun tempel--condition-p (modes cond)
+  "Return non-nil if one of MODES matches and COND is satisfied."
   (and
    (cl-loop
     for m in modes thereis
@@ -543,24 +545,24 @@ TEMPLATES must be a list in the form (modes plist . templates)."
         (when-let* ((remap (alist-get m major-mode-remap-alist)))
           (derived-mode-p remap))))
    (or tempel--ignore-condition
-       (not (plist-member plist :when))
+       (not cond)
        (save-excursion
          (save-restriction
            (save-match-data
-             (eval (plist-get plist :when) 'lexical)))))))
+             (eval cond 'lexical)))))))
 
 (defun tempel--templates ()
   "Return templates for current mode."
-  (let (result)
+  (let (list)
     (run-hook-wrapped
      'tempel-template-sources
      (lambda (fun)
        (cond
-        ((functionp fun) (cl-callf append result (funcall fun)))
-        ((boundp fun) (cl-callf append result (symbol-value fun)))
+        ((functionp fun) (push (funcall fun) list))
+        ((boundp fun) (push (symbol-value fun) list))
         (t (error "Template source is not a function or a variable: %S" fun)))
        nil))
-    result))
+    (apply #'append list)))
 
 (defun tempel--region ()
   "Return region bounds."
@@ -779,17 +781,17 @@ Capf, otherwise like an interactive completion command."
               :exit-function (apply-partially #'tempel--exit templates region)
               :company-doc-buffer
               (apply-partially #'tempel--info-buffer templates
-                               (lambda (elts)
-                                 (insert (tempel--print-template elts))
-                                 (tempel--insert-doc elts)
+                               (lambda (template)
+                                 (insert (tempel--print-template template))
+                                 (tempel--insert-doc template)
                                  (current-buffer)))
               :company-location
               (apply-partially #'tempel--info-buffer templates
-                               (lambda (elts)
-                                 (pp (cl-loop for x in elts
+                               (lambda (template)
+                                 (pp (cl-loop for x in template
                                               until (keywordp x) collect x)
                                      (current-buffer))
-                                 (tempel--insert-doc elts)
+                                 (tempel--insert-doc template)
                                  (list (current-buffer))))
               :annotation-function
               (when tempel-complete-annotation
@@ -857,17 +859,16 @@ If called interactively, select a template with `completing-read'."
   (when tempel-abbrev-mode
     (let ((table (make-abbrev-table))
           (tempel--ignore-condition t))
-      (dolist (template (tempel--templates))
-        (let* ((name (symbol-name (car template)))
-               (hook (make-symbol name)))
+      (dolist (sym (delete-dups (mapcar #'car (tempel--templates))))
+        (let ((hook (make-symbol (symbol-name sym))))
           (fset hook (lambda ()
-                       (tempel--delete-word name)
-                       (tempel--insert (cdr template) nil)
+                       (tempel--delete-word (symbol-name sym))
+                       (tempel--insert (alist-get sym (tempel--templates)) nil)
                        t))
           (put hook 'no-self-insert t)
-          (define-abbrev table name 'Template hook
+          (define-abbrev table (symbol-name sym) 'Template hook
             :system t :enable-function
-            (lambda () (assq (car template) (tempel--templates))))))
+            (lambda () (assq sym (tempel--templates))))))
       (setq-local abbrev-minor-mode-table-alist
                   (cons `(tempel-abbrev-mode . ,table)
                         abbrev-minor-mode-table-alist)))))
