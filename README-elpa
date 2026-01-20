@@ -21,7 +21,7 @@ Table of Contents
 3. Template file format
 4. Template syntax
 5. Defining custom elements
-6. Adding template sources
+6. Adding templates
 7. Hooking into the Abbrev mechanism
 8. Binding important templates to a key
 9. LSP integration
@@ -431,27 +431,43 @@ Table of Contents
   └────
 
 
-6 Adding template sources
-═════════════════════════
+6 Adding templates
+══════════════════
 
   Tempel offers a flexible mechanism for providing the templates, which
   are applicable to the current context. The variable
   `tempel-template-sources' specifies a list of sources or a single
   source. A source can either be a function, which should return a list
   of applicable templates, or the symbol of a variable, which holds a
-  list of templates, which apply to the current context.  By default,
-  Tempel configures only the source `tempel-path-templates'. You may
-  want to add global or local template variables to your user
-  configuration:
+  list of templates. By default, Tempel configures the source
+  `tempel-path-templates', which reads the files specified by the
+  variable `tempel-path'. You can add define additional global templates
+  as follows in your configuration:
 
   ┌────
   │ (defvar my-global-templates
-  │   '((example "Global example template"))
-  │   "My global templates.")
-  │ (defvar-local my-local-templates nil
-  │   "Buffer-local templates.")
+  │   '((fixme comment-start "FIXME ")
+  │     (todo comment-start "TODO "))
+  │   "List of global templates.")
+  │ 
   │ (add-to-list 'tempel-template-sources 'my-global-templates)
-  │ (add-to-list 'tempel-template-sources 'my-local-templates)
+  └────
+
+  For mode-specific templates, the following approach can be
+  used. Similarly, modes themselves can directly provide templates in
+  the same way.
+
+  ┌────
+  │ (defvar my-emacs-lisp-templates
+  │   '((lambda "(lambda (" p ")" n> r> ")")
+  │     (var "(defvar " p "\n  \"" p "\")")
+  │     (fun "(defun " p " (" p ")\n  \"" p "\"" n> r> ")"))
+  │   "List of Elisp templates.")
+  │ 
+  │ (add-hook
+  │  'emacs-lisp-mode-hook
+  │  (lambda ()
+  │    (add-hook 'tempel-template-sources 'my-emacs-lisp-templates nil 'local)))
   └────
 
 

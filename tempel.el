@@ -490,22 +490,24 @@ If a field was added, return it."
 
 (defun tempel--file-prepare (data)
   "Reorganize the template DATA from file.
-DATA must be a list (modes plist templates modes plist templates...).
+DATA must be a list (MODES PLIST TEMPLATES MODES PLIST TEMPLATES...).
 See the README, which provides an example for the file format of the
-template.eld file.  The return value is a list of (modes plist . templates)."
+template.eld file.  The return value is a list of elements of the
+form (MODE COND . TEMPLATES)."
   (let (result)
     (while data
       (let (modes plist templates)
         (while (and (car data) (symbolp (car data)) (not (keywordp (car data))))
           (push (pop data) modes))
         (while (keywordp (car data))
-          (push (pop data) plist)
-          (push (pop data) plist))
+          (setq plist `(,(car data) ,(cadr data) ,@plist)
+                data (cddr data)))
         (while (consp (car data))
           (push (pop data) templates))
-        (push `( ,(nreverse modes) ,(plist-get (nreverse plist) :when)
-                 . ,(nreverse templates))
-              result)))
+        (setq plist (or (not (plist-member plist :when)) (plist-get plist :when))
+              templates (nreverse templates))
+        (dolist (mode modes)
+          (push `(,mode ,plist ,@templates) result))))
     result))
 
 (defun tempel-path-templates ()
@@ -530,22 +532,20 @@ as source in `tempel-template-sources'."
 
 (defun tempel--filter-templates (templates)
   "Filter templates from TEMPLATES relevant to the current buffer.
-TEMPLATES must be a list in the form (modes plist . templates)."
-  (cl-loop for (modes cond . mode-templates) in templates
-           if (tempel--condition-p modes cond)
+TEMPLATES must be a list of elements of the form (MODE COND . TEMPLATES)."
+  (cl-loop for (mode cond . mode-templates) in templates
+           if (tempel--condition-p mode cond)
            append mode-templates))
 
-(defun tempel--condition-p (modes cond)
-  "Return non-nil if one of MODES matches and COND is satisfied."
+(defun tempel--condition-p (mode cond)
+  "Return non-nil if MODE matches and COND is satisfied."
   (and
-   (cl-loop
-    for m in modes thereis
-    (or (eq m #'fundamental-mode)
-        (derived-mode-p m)
-        (when-let* ((remap (alist-get m major-mode-remap-alist)))
-          (derived-mode-p remap))))
+   (or (eq mode #'fundamental-mode)
+       (derived-mode-p mode)
+       (when-let* ((remap (alist-get mode major-mode-remap-alist)))
+         (derived-mode-p remap)))
    (or tempel--ignore-condition
-       (not cond)
+       (eq cond t)
        (save-excursion
          (save-restriction
            (save-match-data

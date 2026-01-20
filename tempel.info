@@ -28,7 +28,7 @@ mechanism which is used by Emacs for in-buffer completion.
 * Template file format::
 * Template syntax::
 * Defining custom elements::
-* Adding template sources::
+* Adding templates::
 * Hooking into the Abbrev mechanism::
 * Binding important templates to a key::
 * LSP integration::
@@ -373,7 +373,7 @@ tempo.el.  We document the important ones here:
    Use caution with templates which execute arbitrary code!
 
 
-File: tempel.info,  Node: Defining custom elements,  Next: Adding template sources,  Prev: Template syntax,  Up: Top
+File: tempel.info,  Node: Defining custom elements,  Next: Adding templates,  Prev: Template syntax,  Up: Top
 
 5 Defining custom elements
 **************************
@@ -429,30 +429,45 @@ matrices:
              "\\end{" type "}")
 
 
-File: tempel.info,  Node: Adding template sources,  Next: Hooking into the Abbrev mechanism,  Prev: Defining custom elements,  Up: Top
+File: tempel.info,  Node: Adding templates,  Next: Hooking into the Abbrev mechanism,  Prev: Defining custom elements,  Up: Top
 
-6 Adding template sources
-*************************
+6 Adding templates
+******************
 
 Tempel offers a flexible mechanism for providing the templates, which
 are applicable to the current context.  The variable
 ‘tempel-template-sources’ specifies a list of sources or a single
 source.  A source can either be a function, which should return a list
 of applicable templates, or the symbol of a variable, which holds a list
-of templates, which apply to the current context.  By default, Tempel
-configures only the source ‘tempel-path-templates’.  You may want to add
-global or local template variables to your user configuration:
+of templates.  By default, Tempel configures the source
+‘tempel-path-templates’, which reads the files specified by the variable
+‘tempel-path’.  You can add define additional global templates as
+follows in your configuration:
 
      (defvar my-global-templates
-       '((example "Global example template"))
-       "My global templates.")
-     (defvar-local my-local-templates nil
-       "Buffer-local templates.")
+       '((fixme comment-start "FIXME ")
+         (todo comment-start "TODO "))
+       "List of global templates.")
+
      (add-to-list 'tempel-template-sources 'my-global-templates)
-     (add-to-list 'tempel-template-sources 'my-local-templates)
+
+   For mode-specific templates, the following approach can be used.
+Similarly, modes themselves can directly provide templates in the same
+way.
+
+     (defvar my-emacs-lisp-templates
+       '((lambda "(lambda (" p ")" n> r> ")")
+         (var "(defvar " p "\n  \"" p "\")")
+         (fun "(defun " p " (" p ")\n  \"" p "\"" n> r> ")"))
+       "List of Elisp templates.")
+
+     (add-hook
+      'emacs-lisp-mode-hook
+      (lambda ()
+        (add-hook 'tempel-template-sources 'my-emacs-lisp-templates nil 'local)))
 
 
-File: tempel.info,  Node: Hooking into the Abbrev mechanism,  Next: Binding important templates to a key,  Prev: Adding template sources,  Up: Top
+File: tempel.info,  Node: Hooking into the Abbrev mechanism,  Next: Binding important templates to a key,  Prev: Adding templates,  Up: Top
 
 7 Hooking into the Abbrev mechanism
 ***********************************
@@ -548,17 +563,17 @@ copyright assignment to the FSF.
 
 Tag Table:
 Node: Top205
-Node: Template expansion1190
-Node: Configuration3016
-Node: Template file format5170
-Node: Template syntax14710
-Node: Defining custom elements16890
-Node: Adding template sources19292
-Node: Hooking into the Abbrev mechanism20347
-Node: Binding important templates to a key20812
-Node: LSP integration21671
-Node: Alternatives21984
-Node: Contributions23827
+Node: Template expansion1183
+Node: Configuration3009
+Node: Template file format5163
+Node: Template syntax14703
+Node: Defining custom elements16883
+Node: Adding templates19278
+Node: Hooking into the Abbrev mechanism20749
+Node: Binding important templates to a key21207
+Node: LSP integration22066
+Node: Alternatives22379
+Node: Contributions24222
 
 End Tag Table
 
