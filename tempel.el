@@ -5,7 +5,7 @@
 ;; Author: Daniel Mendler <mail@daniel-mendler.de>
 ;; Maintainer: Daniel Mendler <mail@daniel-mendler.de>
 ;; Created: 2022
-;; Version: 1.9
+;; Version: 1.10
 ;; Package-Requires: ((emacs "29.1") (compat "30"))
 ;; URL: https://github.com/minad/tempel
 ;; Keywords: abbrev, languages, tools, text
@@ -272,16 +272,15 @@ BEG and END are the boundaries of the modification."
       (unless (eq ov current)
         (save-excursion
           (goto-char (overlay-start ov))
-          (let (x)
-            (setq x (or (and (setq x (overlay-get ov 'tempel--form))
-                             (or (eval x (cdr st)) ""))
-                        (and (setq x (overlay-get ov 'tempel--name))
-                             (alist-get x (cdr st)))))
-            (when x
-              (tempel--sync-replace (overlay-start ov)
-                                           (overlay-end ov) ov x)))))
+          (when-let* ((str (if-let* ((form (overlay-get ov 'tempel--form)))
+                               (or (eval form (cdr st)) "")
+                             (when-let* ((name (overlay-get ov 'tempel--name)))
+                               (alist-get name (cdr st))))))
+            (tempel--sync-replace (overlay-start ov)
+                                  (overlay-end ov) ov str))))
       ;; Move range overlay
-      (move-overlay range (overlay-start range)
+      (move-overlay range
+                    (min (overlay-start range) (overlay-start ov))
                     (max (overlay-end range) (overlay-end ov))))))
 
 (defun tempel--sync-replace (beg end ov str)
@@ -322,7 +321,7 @@ Return the added field."
   (let ((st (car tempel--active))
         (ov (make-overlay (point) (point)))
         (hooks (list #'tempel--field-modified)))
-    (push ov (car st))
+    (push ov (cdar st))
     (when name
       (overlay-put ov 'tempel--name name)
       (setq init (or init (alist-get name (cdr st))))
@@ -341,6 +340,7 @@ Return the added field."
       (overlay-put ov 'tempel--default
                    (if (string-suffix-p ": " init) 'end 'start)))
     (tempel--sync-fields st ov)
+    (goto-char (overlay-end ov))
     ov))
 
 (defun tempel--form (form initial)
@@ -350,7 +350,7 @@ Return the added field."
   (let ((ov (make-overlay (- (point) (length initial)) (point) nil t)))
     (overlay-put ov 'face 'tempel-form)
     (overlay-put ov 'tempel--form form)
-    (push ov (caar tempel--active))
+    (push ov (cdaar tempel--active))
     ov))
 
 (defmacro tempel--protect (&rest body)
@@ -441,10 +441,10 @@ Use caution with templates which execute arbitrary code!"
     ('q (overlay-put (tempel--field) 'tempel--enter #'tempel--done))
     (_ (let* ((uel (tempel--user-element elt))
               (val (unless uel
-                      ;; Ignore errors since variables may not be defined yet.
-                      (condition-case nil
-                          (eval elt (cdar tempel--active))
-                        (void-variable "")))))
+                     ;; Ignore errors since variables may not be defined yet.
+                     (condition-case nil
+                         (eval elt (cdar tempel--active))
+                       (void-variable "")))))
          (if (or uel (not (stringp val)))
              (tempel--element region (or uel val))
            ;; TEMPEL EXTENSION: Evaluate forms
@@ -490,18 +490,17 @@ If a field was added, return it."
                      (>= (overlay-end ov) (point)))
             (setf (overlay-end ov) (point)))))
       ;; Activate template
-      (let ((st (cons nil nil))
-            (beg (point))
-            (tempel--inhibit-hooks t))
+      (let* ((range (make-overlay (point) (point) nil t))
+             (st (cons (list range) nil))
+             (tempel--inhibit-hooks t))
         (push st tempel--active)
         (cl-loop for x in template until (keywordp x)
                  do (tempel--element region x))
-        (let ((ov (make-overlay beg (point) nil t)))
-          (overlay-put ov 'modification-hooks (list #'tempel--range-modified))
-          (overlay-put ov 'tempel--range st)
-          (overlay-put ov 'tempel--post (plist-get plist :post))
-          ;; (overlay-put ov 'face 'region) ;; Enable for debugging
-          (push ov (car st)))))
+        (move-overlay range (overlay-start range) (point))
+        ;; (overlay-put range 'face 'region) ;; Enable for debugging
+        (overlay-put range 'modification-hooks (list #'tempel--range-modified))
+        (overlay-put range 'tempel--range st)
+        (overlay-put range 'tempel--post (plist-get plist :post))))
     (cond
      ((cl-loop for ov in (caar tempel--active)
                never (overlay-get ov 'tempel--field))
@@ -885,18 +884,19 @@ If called interactively, select a template with `completing-read'."
   "Bind KEY to TEMPLATE-OR-NAME in MAP."
   (unless (key-valid-p key)
     (error "Invalid key %s" key))
-  `(define-key ,(or map 'global-map) ,(key-parse key)
-     ,(if (consp template-or-name)
-          `(lambda ()
-             (interactive)
-             (tempel-insert ',template-or-name))
-        (let ((cmd (intern (format "tempel-insert-%s" template-or-name))))
-          `(prog1 ',cmd
-             (defun ,cmd ()
-               ,(format "Insert template %s in the current buffer."
-                        template-or-name)
-               (interactive)
-               (tempel-insert ',template-or-name)))))))
+  `(define-key
+    ,(or map 'global-map) ,(key-parse key)
+    ,(if (consp template-or-name)
+         `(lambda ()
+            (interactive)
+            (tempel-insert ',template-or-name))
+       (let ((cmd (intern (format "tempel-insert-%s" template-or-name))))
+         `(prog1 ',cmd
+            (defun ,cmd ()
+              ,(format "Insert template %s in the current buffer."
+                       template-or-name)
+              (interactive)
+              (tempel-insert ',template-or-name)))))))
 
 ;;;###autoload
 (define-minor-mode tempel-abbrev-mode
