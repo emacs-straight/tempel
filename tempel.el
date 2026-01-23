@@ -273,7 +273,7 @@ BEG and END are the boundaries of the modification."
         (save-excursion
           (goto-char (overlay-start ov))
           (when-let* ((str (if-let* ((form (overlay-get ov 'tempel--form)))
-                               (or (eval form (cdr st)) "")
+                               (eval form (cdr st))
                              (when-let* ((name (overlay-get ov 'tempel--name)))
                                (alist-get name (cdr st))))))
             (tempel--sync-replace (overlay-start ov)
@@ -324,8 +324,8 @@ Return the added field."
     (push ov (cdar st))
     (when name
       (overlay-put ov 'tempel--name name)
-      (setq init (or init (alist-get name (cdr st))))
-      (setf (alist-get name (cdr st)) init))
+      (setf init (or init (alist-get name (cdr st) ""))
+            (alist-get name (cdr st)) init))
     (when (and init (not (equal init "")))
       (insert init)
       (move-overlay ov (overlay-start ov) (point)))
