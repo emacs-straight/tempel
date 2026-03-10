@@ -2,6 +2,10 @@
 #+author: Daniel Mendler
 #+language: en
 
+* Version 1.12 (2026-03-09)
+
+- Bugfixes.
+
 * Version 1.11 (2026-01-25)
 
 - Bugfixes.
