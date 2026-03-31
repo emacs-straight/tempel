@@ -32,7 +32,6 @@ mechanism which is used by Emacs for in-buffer completion.
 * Binding important templates to a key::
 * LSP integration::
 * Alternatives::
-* Contributions::
 
 
 File: tempel.info,  Node: Template expansion,  Next: Configuration,  Prev: Top,  Up: Top
@@ -74,7 +73,7 @@ File: tempel.info,  Node: Configuration,  Next: Template file format,  Prev: Tem
 2 Configuration
 ***************
 
-The package is available on GNU ELPA and MELPA and can be installed with
+The package is available from MELPA and can be installed with
 ‘package-install’.  The following example configuration relies on
 ‘use-package’.  For some ready-made templates check out the package
 tempel-collection (https://github.com/Crandel/tempel-collection).  We
@@ -524,7 +523,7 @@ See the following projects:
    • lsp-snippet (https://github.com/svaante/lsp-snippet)
 
 
-File: tempel.info,  Node: Alternatives,  Next: Contributions,  Prev: LSP integration,  Up: Top
+File: tempel.info,  Node: Alternatives,  Prev: LSP integration,  Up: Top
 
 10 Alternatives
 ***************
@@ -565,29 +564,18 @@ Schumacher (GitHub link (https://github.com/nschum/tempo-snippets.el)).
      system inspired by Textmate snippets
 
 
-File: tempel.info,  Node: Contributions,  Prev: Alternatives,  Up: Top
-
-11 Contributions
-****************
-
-Since this package is part of GNU ELPA
-(https://elpa.gnu.org/packages/tempel.html) contributions require a
-copyright assignment to the FSF.
-
-
 Tag Table:
 Node: Top203
-Node: Template expansion1181
-Node: Configuration3007
-Node: Template file format5161
-Node: Template syntax14701
-Node: Defining custom elements18041
-Node: Adding templates20381
-Node: Hooking into the Abbrev mechanism21852
-Node: Binding important templates to a key22310
-Node: LSP integration23169
-Node: Alternatives23482
-Node: Contributions25325
+Node: Template expansion1163
+Node: Configuration2989
+Node: Template file format5132
+Node: Template syntax14672
+Node: Defining custom elements18012
+Node: Adding templates20352
+Node: Hooking into the Abbrev mechanism21823
+Node: Binding important templates to a key22281
+Node: LSP integration23140
+Node: Alternatives23453
 
 End Tag Table
 
