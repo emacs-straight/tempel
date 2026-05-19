@@ -66,8 +66,8 @@ Table of Contents
 2 Configuration
 ═══════════════
 
-  The package is available from MELPA and can be installed with
-  `package-install'.  The following example configuration relies on
+  The package is available on [ELPA] and [MELPA] and can be installed
+  with `package-install'. The following example configuration relies on
   `use-package'. For some ready-made templates check out the package
   [tempel-collection]. We appreciate if more templates are contributed
   there.
@@ -116,6 +116,10 @@ Table of Contents
   │   (global-corfu-mode))
   └────
 
+
+[ELPA] <https://elpa.gnu.org/packages/tempel.html>
+
+[MELPA] <https://melpa.org/#/tempel>
 
 [tempel-collection] <https://github.com/Crandel/tempel-collection>
 
