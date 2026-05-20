@@ -1,4 +1,5 @@
-This is tempel.info, produced by makeinfo version 7.2 from tempel.texi.
+This is tempel.info, produced by makeinfo version 7.1.1 from
+tempel.texi.
 
 INFO-DIR-SECTION Emacs misc features
 START-INFO-DIR-ENTRY
@@ -565,24 +566,24 @@ Schumacher (GitHub link (https://github.com/nschum/tempo-snippets.el)).
    • yasnippet.el (https://github.com/joaotavora/yasnippet): Template
      system inspired by Textmate snippets
 
+
 
 Tag Table:
-Node: Top203
-Node: Template expansion1163
-Node: Configuration2989
-Node: Template file format5212
-Node: Template syntax14752
-Node: Defining custom elements18092
-Node: Adding templates20432
-Node: Hooking into the Abbrev mechanism21903
-Node: Binding important templates to a key22361
-Node: LSP integration23220
-Node: Alternatives23533
+Node: Top205
+Node: Template expansion1165
+Node: Configuration2991
+Node: Template file format5214
+Node: Template syntax14754
+Node: Defining custom elements18094
+Node: Adding templates20434
+Node: Hooking into the Abbrev mechanism21905
+Node: Binding important templates to a key22363
+Node: LSP integration23222
+Node: Alternatives23535
 
 End Tag Table
 
 
 Local Variables:
 coding: utf-8
-Info-documentlanguage: en
 End:
