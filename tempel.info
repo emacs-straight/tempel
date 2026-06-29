@@ -76,7 +76,7 @@ File: tempel.info,  Node: Configuration,  Next: Template file format,  Prev: Tem
 
 The package is available on ELPA
 (https://elpa.gnu.org/packages/tempel.html) and MELPA
-(https://melpa.org/#/tempel) and can be installed with
+(https://releases.melpa.org/#/tempel) and can be installed with
 ‘package-install’.  The following example configuration relies on
 ‘use-package’.  For some ready-made templates check out the package
 tempel-collection (https://github.com/Crandel/tempel-collection).  We
@@ -572,14 +572,14 @@ Tag Table:
 Node: Top205
 Node: Template expansion1165
 Node: Configuration2991
-Node: Template file format5214
-Node: Template syntax14754
-Node: Defining custom elements18094
-Node: Adding templates20434
-Node: Hooking into the Abbrev mechanism21905
-Node: Binding important templates to a key22363
-Node: LSP integration23222
-Node: Alternatives23535
+Node: Template file format5223
+Node: Template syntax14763
+Node: Defining custom elements18103
+Node: Adding templates20443
+Node: Hooking into the Abbrev mechanism21914
+Node: Binding important templates to a key22372
+Node: LSP integration23231
+Node: Alternatives23544
 
 End Tag Table
 
